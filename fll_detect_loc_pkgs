@@ -1,0 +1,48 @@
+#!/usr/bin/python -tt
+"""
+Detects locale support packages based on package profile of the local system.
+
+Authour:   Kel Modderman
+Copyright: Copyright (C) 2008 Kel Modderman <kel@otaku42.de>
+License:   GPL-2
+"""
+
+import apt_pkg
+import os
+import sys
+
+from configobj import ConfigObj
+from fll.locales import FllLocales, FllLocalesError
+
+
+def print_error(msg):
+     print >>sys.stderr, 'Error:', msg
+
+
+if __name__ == '__main__':
+    if len(sys.argv) < 2:
+        print_error('must specify at least one locale code, eg. fr_FR')
+        sys.exit(1)
+
+    apt_pkg.InitConfig()
+    apt_pkg.InitSystem()
+
+    apt_cache = apt_pkg.GetCache(None)
+    installed_packages = dict([(pkg.Name, pkg.CurrentVer.VerStr)
+                               for pkg in apt_cache.Packages
+                               if pkg.CurrentVer])
+
+    loc_pkg_map_data = 'data/locales-pkg-map'
+    if not os.path.isfile(loc_pkg_map_data):
+        loc_pkg_map_data = os.path.join('/usr/share/fll', loc_pkg_map_data)
+    loc_pkg_map = ConfigObj(loc_pkg_map_data)
+
+    fll_locales = FllLocales(apt_cache, installed_packages, loc_pkg_map)
+    for locale in sorted(sys.argv[1:]):
+        try:
+            loc_pkg_list = fll_locales.detect_locale_packages(locale)
+        except FllLocalesError:
+            print_error('Failed to parse locale string: %s' % locale)
+        else:
+            for pkg in loc_pkg_list:
+                print pkg
