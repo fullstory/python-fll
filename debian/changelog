@@ -1,5 +1,9 @@
 python-fll (0.0.1-1) unstable; urgency=low
 
+  [ Kel Modderman ]
   * Initial release.
 
- -- Kel Modderman <kel@otaku42.de>  Sat, 11 Oct 2008 07:24:03 +1000
+  [ Niall Walsh ]
+  * Tweak language package detection to do more exact matching
+
+ -- Niall Walsh <niallwalsh@users.berlios.de>  Tue, 25 Nov 2008 22:06:13 +0000

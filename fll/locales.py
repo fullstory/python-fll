@@ -63,7 +63,9 @@ class FllLocales(object):
                 continue
             for loc_pkg in map.keys():
                 if pkg.Name == loc_pkg:
-                    self.loc_pkgs_set.add(pkg.Name)
+                    loc_pkg_prefix_list = map.get(loc_pkg)
+                    for loc_pkg_prefix in loc_pkg_prefix_list:
+                        self.loc_pkgs_set.add(loc_pkg_prefix)
                     break
 
         self.loc_pkgs_list_dict = dict()
@@ -73,12 +75,8 @@ class FllLocales(object):
             if not pkg.VersionList:
                 continue
             for loc_pkg in self.loc_pkgs_set:
-                loc_pkg_prefix_list = map.get(loc_pkg)
-                if not loc_pkg_prefix_list:
-                    continue
-                for loc_pkg_prefix in loc_pkg_prefix_list:
-                    if pkg.Name.startswith(loc_pkg_prefix + '-'):
-                        self.loc_pkgs_list_dict[loc_pkg].append(pkg.Name)
+                if pkg.Name.startswith(loc_pkg + '-'):
+                    self.loc_pkgs_list_dict[loc_pkg].append(pkg.Name)
 
     def __compute_locale_loc_suf_list(self, locale):
         """
@@ -137,8 +135,8 @@ class FllLocales(object):
                 loc_pkg_dict[pkg] = dict()
             for loc_pkg in loc_pkgs_list:
                 for idx, suf in enumerate(suffixes):
-                    if loc_pkg.endswith(suf):
-                        loc_pkg_dict[pkg][idx] = loc_pkg
+                    if loc_pkg == '-'.join([pkg, suf]):
+                       loc_pkg_dict[pkg][idx] = loc_pkg
 
         packages = list()
         for pkg in self.loc_pkgs_set:
