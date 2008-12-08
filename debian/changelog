@@ -1,8 +1,9 @@
 python-fll (0.0.2) UNRELEASED; urgency=low
 
   * NOT RELEASED YET
+  * make lintian happy and depend on ${misc:Depends}.
 
- -- Stefan Lippers-Hollmann <s.l-h@gmx.de>  Tue, 25 Nov 2008 23:17:49 +0100
+ -- Stefan Lippers-Hollmann <s.l-h@gmx.de>  Mon, 08 Dec 2008 02:50:32 +0100
 
 python-fll (0.0.1) unstable; urgency=low
 
