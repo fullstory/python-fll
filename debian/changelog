@@ -1,8 +1,9 @@
 python-fll (0.0.3) unstable; urgency=low
 
   * add new locale mappings for kde4/ koffice.
+  * bump standards version to 3.8.2, no changes necessary.
 
- -- Stefan Lippers-Hollmann <s.l-h@gmx.de>  Tue, 30 Jun 2009 00:41:14 +0200
+ -- Stefan Lippers-Hollmann <s.l-h@gmx.de>  Tue, 30 Jun 2009 00:42:49 +0200
 
 python-fll (0.0.2) unstable; urgency=low
 
