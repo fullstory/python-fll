@@ -16,11 +16,9 @@ iceweasel = iceweasel-l10n,
 
 k3b = k3b,
 
-kde4-minimal = kde-l10n,
+kde-minimal = kde-l10n,
 
-kde-core = kde-i18n,
-
-koffice = koffice-i18n,
+koffice = koffice-l10n,
 
 myspell-en-us = myspell,
 

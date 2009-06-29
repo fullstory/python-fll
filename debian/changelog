@@ -1,8 +1,8 @@
-python-fll (0.0.3) UNRELEASED; urgency=low
+python-fll (0.0.3) unstable; urgency=low
 
-  * NOT RELEASED YET
+  * add new locale mappings for kde4/ koffice.
 
- -- Stefan Lippers-Hollmann <s.l-h@gmx.de>  Mon, 08 Dec 2008 22:58:02 +0100
+ -- Stefan Lippers-Hollmann <s.l-h@gmx.de>  Tue, 30 Jun 2009 00:41:14 +0200
 
 python-fll (0.0.2) unstable; urgency=low
 
