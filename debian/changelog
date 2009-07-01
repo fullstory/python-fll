@@ -1,3 +1,9 @@
+python-fll (0.0.5) UNRELEASED; urgency=low
+
+  * NOT RELEASED YET
+
+ -- Stefan Lippers-Hollmann <s.l-h@gmx.de>  Wed, 01 Jul 2009 17:44:48 +0200
+
 python-fll (0.0.4) unstable; urgency=low
 
   * remove gwenview handling, it conflicts with kde-l10n-de.
