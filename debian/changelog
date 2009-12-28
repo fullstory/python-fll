@@ -1,3 +1,9 @@
+python-fll (0.0.6) unstable; urgency=low
+
+  * add libxml2-utils to build-depends.
+
+ -- Stefan Lippers-Hollmann <s.l-h@gmx.de>  Tue, 29 Dec 2009 00:44:28 +0100
+
 python-fll (0.0.5) unstable; urgency=low
 
   * drop k3b from locale heuristics, there are none for k3b v2 yet.
