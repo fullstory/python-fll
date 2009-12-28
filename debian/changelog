@@ -1,8 +1,8 @@
-python-fll (0.0.5) UNRELEASED; urgency=low
+python-fll (0.0.5) unstable; urgency=low
 
-  * NOT RELEASED YET
+  * drop k3b from locale heuristics, there are none for k3b v2 yet.
 
- -- Stefan Lippers-Hollmann <s.l-h@gmx.de>  Wed, 01 Jul 2009 17:44:48 +0200
+ -- Stefan Lippers-Hollmann <s.l-h@gmx.de>  Tue, 29 Dec 2009 00:39:26 +0100
 
 python-fll (0.0.4) unstable; urgency=low
 
