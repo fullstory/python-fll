@@ -1,9 +1,5 @@
-python-fll (0.0.7) UNRELEASED; urgency=low
+python-fll (0.0.7) unstable; urgency=low
 
-  [ Stefan Lippers-Hollmann ]
-  * NOT RELEASED YET
-
-  [ Kel Modderman ]
   * Bump standards-version to 3.8.4 without any extra changes needed.
   * Update locales module to new python-apt API.
   * Add setup.cfg to make sure scripts are installed to correct
