@@ -1,9 +1,12 @@
-python-fll (0.0.7+nmu1) UNRELEASED; urgency=low
+python-fll (0.0.8) UNRELEASED; urgency=low
 
-  * Non-maintainer upload.
-  * NOT RELEASED YET
+  NO NEED TO RELEASE - WIP
+  
+  [ Kel Modderman ]
+  * Add a FllChroot class (fll/chroot.py) for bootstrapping and doing
+    useful things in chroots.
 
- -- Stefan Lippers-Hollmann <s.l-h@gmx.de>  Thu, 11 Feb 2010 13:55:15 +0100
+ -- Kel Modderman <kel@otaku42.de>  Fri, 12 Feb 2010 09:25:58 +1000
 
 python-fll (0.0.7) unstable; urgency=low
 
