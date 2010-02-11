@@ -14,7 +14,7 @@ This dict contains fallback strings for specific locales. It is used
 by the very private method, __compute_locale_loc_suf_list, of the
 FllLocales class.
 """
-LOCALE_DEFAULTS = {
+FLL_LOCALE_DEFAULTS = {
     'be': 'be_BY',
     'cs': 'cs_CZ',
     'da': 'da_DK',
@@ -56,13 +56,13 @@ class FllLocales(object):
     """
     def __init__(self, cache, packages, map):
         self.loc_pkgs_set = set()
-        for pkg in cache.Packages:
-            if not pkg.VersionList:
+        for pkg in cache.packages:
+            if not pkg.version_list:
                 continue
-            if pkg.Name not in packages:
+            if pkg.name not in packages:
                 continue
             for loc_pkg in map.keys():
-                if pkg.Name == loc_pkg:
+                if pkg.name == loc_pkg:
                     loc_pkg_prefix_list = map.get(loc_pkg)
                     for loc_pkg_prefix in loc_pkg_prefix_list:
                         self.loc_pkgs_set.add(loc_pkg_prefix)
@@ -71,8 +71,8 @@ class FllLocales(object):
         self.loc_pkgs_list_dict = dict()
         for loc_pkg in self.loc_pkgs_set:
             self.loc_pkgs_list_dict[loc_pkg] = list()
-        for pkg in cache.Packages:
-            if not pkg.VersionList:
+        for pkg in cache.packages:
+            if not pkg.version_list:
                 continue
             for loc_pkg in self.loc_pkgs_set:
                 if pkg.Name.startswith(loc_pkg + '-'):
@@ -98,7 +98,7 @@ class FllLocales(object):
         loc_suf_list.append(ll + cc)
         loc_suf_list.append(ll)
 
-        default = LOCALE_DEFAULTS.get(ll)
+        default = FLL_LOCALE_DEFAULTS.get(ll)
         if default and default != locale:
             try:
                 ll, cc = default.lower().split('_')
