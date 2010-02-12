@@ -26,7 +26,7 @@ class FllChroot(object):
 
     Arguments:
     path     - path to root of chroot
-    hostanme - hostname of chroot
+    hostname - hostname of chroot
     """
     path = None
     hostname = None
