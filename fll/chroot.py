@@ -119,7 +119,34 @@ class FllChroot(object):
             else:
                 os.symlink('/bin/true', self.chroot_fname(fname))
 
-    def prep_apt_sources(self, sources, cached_uris=False, update=False):
+    def post_chroot(self):
+        """Undo any changes in the chroot which should be undone. Make any
+        final configurations."""
+        for fname in ('/etc/hosts', '/etc/motd.tail', '/etc/resolv.conf'):
+            # /etc/resolv.conf (and possibly others) may be a symlink to an 
+            # absolute path - so do not clobber the host's configuration.
+            if os.path.islink(self.chroot_fname(fname)):
+                continue
+            self.create_fname(fname)
+
+        for fname in self.diverts:
+            os.unlink(self.chroot_fname(fname))
+            cmd = 'dpkg-divert --remove --rename ' + fname
+            self.cmd(cmd)
+
+        if os.path.isfile(self.chroot_fname('/usr/sbin/update-grub')):
+            fh = None
+            try:
+                fh = open(self.chroot_fname('/etc/kernel-img.conf'), 'a')
+                print >>fh, 'postinst_hook = /usr/sbin/update-grub'
+                print >>fh, 'postrm_hook   = /usr/sbin/update-grub'
+            except IOError, e:
+                raise FllChrootError('failed to open kernel-img.conf: ' + e)
+            finally:
+                if fh:
+                    fh.close()
+
+    def apt_sources(self, sources, cached_uris=False, update=False):
         """Write apt sources to file(s) in /etc/apt/sources.list.d/*.list."""
         if os.path.isfile(self.chroot_fname('/etc/apt/sources.list')):
             os.unlink(self.chroot_fname('/etc/apt/sources.list'))
@@ -191,33 +218,6 @@ class FllChroot(object):
             self.cmd(cmd)
 
         self.cmd('apt-get update')
-                
-    def post_chroot(self):
-        """Undo any changes in the chroot which should be undone. Make any
-        final configurations."""
-        for fname in ('/etc/hosts', '/etc/motd.tail', '/etc/resolv.conf'):
-            # /etc/resolv.conf (and possibly others) may be a symlink to an 
-            # absolute path - so do not clobber the host's configuration.
-            if os.path.islink(self.chroot_fname(fname)):
-                continue
-            self.create_fname(fname)
-
-        for fname in self.diverts:
-            os.unlink(self.chroot_fname(fname))
-            cmd = 'dpkg-divert --remove --rename ' + fname
-            self.cmd(cmd)
-
-        if os.path.isfile(self.chroot_fname('/usr/sbin/update-grub')):
-            fh = None
-            try:
-                fh = open(self.chroot_fname('/etc/kernel-img.conf'), 'a')
-                print >>fh, 'postinst_hook = /usr/sbin/update-grub'
-                print >>fh, 'postrm_hook   = /usr/sbin/update-grub'
-            except IOError, e:
-                raise FllChrootError('failed to open kernel-img.conf: ' + e)
-            finally:
-                if fh:
-                    fh.close()
 
     def chroot_fname(self, filename):
         return os.path.join(self.path, filename.lstrip('/'))
