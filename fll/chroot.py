@@ -119,6 +119,79 @@ class FllChroot(object):
             else:
                 os.symlink('/bin/true', self.chroot_fname(fname))
 
+    def prep_apt_sources(self, sources, cached_uris=False, update=False):
+        """Write apt sources to file(s) in /etc/apt/sources.list.d/*.list."""
+        if os.path.isfile(self.chroot_fname('/etc/apt/sources.list')):
+            os.unlink(self.chroot_fname('/etc/apt/sources.list'))
+
+        gpgkeys = list()
+        keyrings = list()
+
+        for name, source in sources.items():
+            description = source.get('description')
+            uri = source.get('uri')
+            cached_uri = source.get('cached_uri')
+            suite = source.get('suite')
+            components = source.get('components')
+            
+            gpgkey = source.get('gpgkey')
+            if gpgkey:
+                gpgkeys.append(gpgkey)
+    
+            keyring = source.get('keyring')
+            if keyring:
+                keyrings.append(keyring)
+
+            if cached_uris and cached_uri:
+                line = '%s %s %s' % (cached_uri, suite, components)
+            else:
+                line = '%s %s %s' % (uri, suite, components)
+
+            fname = self.chroot_fname('/etc/apt/sources.list.d/%s.list' % name)
+            
+            fh = None
+            try:
+                fh = open(fname, 'w')
+                print >>fh, '# ' + description
+                print >>fh, 'deb ' + line
+                print >>fh, 'deb-src ' + line
+            except IOError, e:
+                raise FllChrootError('failed to write apt sources.list: ' + e)
+            finally:
+                if fh:
+                    fh.close()
+
+        if not update:
+            return
+
+        for key in gpgkeys:
+            if not os.path.isdir(self.chroot_fname('/root/.gnupg')):
+                os.mkdir(self.chroot_fname('/root/.gnupg'))
+
+            cmd = 'gpg --no-options '
+
+            if os.path.isfile(key):
+                dest = self.chroot_fname('/tmp/' + os.path.basename(key))
+                shutil.copy(key, dest)
+                cmd += '--import /tmp/' + os.path.basename(key)
+            elif key.startswith('http') or key.startswith('ftp'):
+                cmd += '--fetch-keys ' + key
+            else:
+                cmd += '--keyserver wwwkeys.eu.pgp.net --recv-keys ' + key
+
+            self.cmd(cmd)
+
+        if gpgkeys:
+            self.cmd('apt-key add /root/.gnupg/pubring.gpg')
+
+        if keyrings:
+            self.cmd('apt-get update')
+            cmd = 'apt-get --allow-unauthenticated --yes install'.split()
+            cmd.extend(keyrings)
+            self.cmd(cmd)
+
+        self.cmd('apt-get update')
+                
     def post_chroot(self):
         """Undo any changes in the chroot which should be undone. Make any
         final configurations."""
@@ -140,11 +213,11 @@ class FllChroot(object):
                 fh = open(self.chroot_fname('/etc/kernel-img.conf'), 'a')
                 print >>fh, 'postinst_hook = /usr/sbin/update-grub'
                 print >>fh, 'postrm_hook   = /usr/sbin/update-grub'
-            except IOError:
-                raise FllChrootError('failed to open /etc/kernel-img.conf')
+            except IOError, e:
+                raise FllChrootError('failed to open kernel-img.conf: ' + e)
             finally:
-                if f:
-                    f.close()
+                if fh:
+                    fh.close()
 
     def chroot_fname(self, filename):
         return os.path.join(self.path, filename.lstrip('/'))
