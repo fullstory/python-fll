@@ -26,15 +26,20 @@ class FllChroot(object):
 
     Arguments:
     path     - path to root of chroot
+    hostanme - hostname of chroot
     """
     path = None
+    hostname = None
     env = {'LANGUAGE': 'C', 'LC_ALL': 'C', 'LANG' : 'C', 'HOME': '/root',
            'PATH': '/usr/sbin:/usr/bin:/sbin:/bin', 'SHELL': '/bin/bash',
            'DEBIAN_FRONTEND': 'noninteractive', 'DEBIAN_PRIORITY': 'critical',
            'DEBCONF_NOWARNINGS': 'yes'}
+    diverts = ['/usr/sbin/policy-rc.d', '/sbin/modprobe', '/sbin/insmod',
+               '/usr/sbin/update-grub', '/usr/sbin/update-initramfs']
 
-    def __init__(self, path):
+    def __init__(self, path, hostname='chroot'):
         self.path = path
+        self.hostname = hostname
 
     def bootstrap(self, bootstrapper='cdebootstrap', suite='sid',
                   flavour='minimal', variant='minbase',
@@ -93,6 +98,101 @@ class FllChroot(object):
         # impliment our our own policy-rc.d for consistency.
         if bootstrapper == 'cdebootstrap':
             self.cmd('dpkg --purge cdebootstrap-helper-rc.d'.split())
+
+    def prep_chroot(self):
+        """Configure the basics to get a functioning chroot."""
+        for fname in ('/etc/hosts', '/etc/resolv.conf'):
+            os.unlink(self.chroot_fname(fname))
+            shutil.copy(fname, self.chroot_fname(fname))
+
+        for fname in ('/etc/fstab', '/etc/hostname', '/etc/kernel-img.conf',
+                      '/etc/network/interfaces'):
+            self.create_fname(fname)
+
+        for fname in self.diverts:
+            cmd = 'dpkg-divert --add --local --divert ' + fname + '.REAL'
+            cmd += ' --rename ' + fname
+            self.cmd(cmd)
+
+            if fname == '/usr/sbin/policy-rc.d':
+                self.create_fname(fname, mode=0755)
+            else:
+                os.symlink('/bin/true', self.chroot_fname(fname))
+
+    def post_chroot(self):
+        """Undo any changes in the chroot which should be undone. Make any
+        final configurations."""
+        for fname in ('/etc/hosts', '/etc/motd.tail', '/etc/resolv.conf'):
+            # /etc/resolv.conf (and possibly others) may be a symlink to an 
+            # absolute path - so do not clobber the host's configuration.
+            if os.path.islink(self.chroot_fname(fname)):
+                continue
+            self.create_fname(fname)
+
+        for fname in self.diverts:
+            os.unlink(self.chroot_fname(fname))
+            cmd = 'dpkg-divert --remove --rename ' + fname
+            self.cmd(cmd)
+
+        if os.path.isfile(self.chroot_fname('/usr/sbin/update-grub')):
+            fh = None
+            try:
+                fh = open(self.chroot_fname('/etc/kernel-img.conf'), 'a')
+                print >>fh, 'postinst_hook = /usr/sbin/update-grub'
+                print >>fh, 'postrm_hook   = /usr/sbin/update-grub'
+            except IOError:
+                raise FllChrootError('failed to open /etc/kernel-img.conf')
+            finally:
+                if f:
+                    f.close()
+
+    def chroot_fname(self, filename):
+        return os.path.join(self.path, filename.lstrip('/'))
+
+    def create_fname(self, filename, mode=0644):
+        fh = None
+        try:
+            fh = open(self.chroot_fname(filename), 'w')
+
+            if filename == '/usr/sbin/policy-rc.d':
+                print >>fh, '#!/bin/sh'
+                print >>fh, 'echo "$0 denied action: \`$1 $2\'" >&2'
+                print >>fh, 'exit 101'
+
+            elif filename == '/etc/fstab':
+                print >>fh, '# /etc/fstab: static file system information.'
+
+            elif filename == '/etc/hostname':
+                print >>fh, self.hostname
+
+            elif filename == '/etc/hosts':
+                print >>fh, '127.0.0.1\tlocalhost'
+                print >>fh, '127.0.0.1\t' + self.hostname + '\n'
+                print >>fh, '# Below lines are for IPv6 capable hosts'
+                print >>fh, '::1     ip6-localhost ip6-loopback'
+                print >>fh, 'fe00::0 ip6-localnet'
+                print >>fh, 'ff00::0 ip6-mcastprefix'
+                print >>fh, 'ff02::1 ip6-allnodes'
+                print >>fh, 'ff02::2 ip6-allrouters'
+                print >>fh, 'ff02::3 ip6-allhosts'
+
+            elif filename == '/etc/kernel-img.conf':
+                print >>fh, 'do_bootloader = No'
+                print >>fh, 'warn_initrd   = No'
+
+            elif filename == '/etc/network/interfaces':
+                print >>fh, '# /etc/network/interfaces'
+                print >>fh, '# Configuration file for ifup(8) and ifdown(8).\n'
+                print >>fh, '# The loopback interface'
+                print >>fh, 'auto lo'
+                print >>fh, 'iface lo inet loopback'
+
+        except IOError:
+            raise FllChrootError('failed to write: ' + filename)
+        finally:
+            if fh:
+                fh.close()
+                os.chmod(self.chroot_fname(filename), mode)
 
     def mountvirtfs(self):
         """Mount /sys, /proc, /dev/pts virtual filesystems in the chroot."""
