@@ -105,7 +105,7 @@ class FllChroot(object):
             os.unlink(self.chroot_path(fname))
             shutil.copy(fname, self.chroot_path(fname))
 
-        for fname in ('/etc/fstab', '/etc/hostname', '/etc/kernel-img.conf',
+        for fname in ('/etc/fstab', '/etc/hostname',
                       '/etc/network/interfaces'):
             self.create_file(fname)
 
@@ -122,7 +122,7 @@ class FllChroot(object):
     def post_chroot(self):
         """Undo any changes in the chroot which should be undone. Make any
         final configurations."""
-        for fname in ('/etc/hosts', '/etc/motd.tail', '/etc/resolv.conf'):
+        for fname in ('/etc/hosts', '/etc/resolv.conf'):
             # /etc/resolv.conf (and possibly others) may be a symlink to an 
             # absolute path - so do not clobber the host's configuration.
             if os.path.islink(self.chroot_path(fname)):
@@ -133,18 +133,6 @@ class FllChroot(object):
             os.unlink(self.chroot_path(fname))
             cmd = 'dpkg-divert --remove --rename ' + fname
             self.cmd(cmd)
-
-        if os.path.isfile(self.chroot_path('/usr/sbin/update-grub')):
-            fh = None
-            try:
-                fh = open(self.chroot_path('/etc/kernel-img.conf'), 'a')
-                print >>fh, 'postinst_hook = /usr/sbin/update-grub'
-                print >>fh, 'postrm_hook   = /usr/sbin/update-grub'
-            except IOError, e:
-                raise FllChrootError('failed to open kernel-img.conf: ' + e)
-            finally:
-                if fh:
-                    fh.close()
 
     def apt_sources(self, sources, cached_uris=False, update=False):
         """Write apt sources to file(s) in /etc/apt/sources.list.d/*.list."""
@@ -249,10 +237,6 @@ class FllChroot(object):
                 print >>fh, 'ff02::2 ip6-allrouters'
                 print >>fh, 'ff02::3 ip6-allhosts'
 
-            elif filename == '/etc/kernel-img.conf':
-                print >>fh, 'do_bootloader = No'
-                print >>fh, 'warn_initrd   = No'
-
             elif filename == '/etc/network/interfaces':
                 print >>fh, '# /etc/network/interfaces'
                 print >>fh, '# Configuration file for ifup(8) and ifdown(8).\n'
@@ -325,7 +309,8 @@ class FllChroot(object):
         self.mountvirtfs()
 
         try:
-            proc = subprocess.Popen(cmd, preexec_fn=self.chroot, env=self.env)
+            proc = subprocess.Popen(cmd, preexec_fn=self.chroot, env=self.env,
+                                    cwd='/')
             proc.wait()
             assert(proc.returncode == 0)
         except:
@@ -344,7 +329,7 @@ class FllChroot(object):
 
         try:
             proc = subprocess.Popen(cmd, preexec_fn=self.chroot, env=self.env,
-                                    stdout=subprocess.PIPE)
+                                    cwd='/', stdout=subprocess.PIPE)
             stdout = proc.communicate()[0]
             assert(proc.returncode == 0)
         except:
