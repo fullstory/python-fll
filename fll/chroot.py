@@ -90,12 +90,9 @@ class FllChroot(object):
         print ' '.join(cmd)
 
         try:
-            retv = subprocess.call(cmd)
+            subprocess.check_call(cmd)
         except:
-            raise FllChrootError('unexpected error executing: ' + ' '.join(cmd))
-
-        if retv != 0:
-            raise FllChrootError('bootstrap() cmd failed: ' + ' '.join(cmd))
+            raise FllChrootError('bootstrap commmand failed: ' + ' '.join(cmd))
 
         # Some flavours use cdebootstrap-helper-rc.d, some don't. We'll
         # impliment our our own policy-rc.d for consistency.
@@ -110,7 +107,7 @@ class FllChroot(object):
 
         for fname in ('/etc/fstab', '/etc/hostname', '/etc/kernel-img.conf',
                       '/etc/network/interfaces'):
-            self.create_fname(fname)
+            self.create_file(fname)
 
         for fname in self.diverts:
             cmd = 'dpkg-divert --add --local --divert ' + fname + '.REAL'
@@ -118,7 +115,7 @@ class FllChroot(object):
             self.cmd(cmd)
 
             if fname == '/usr/sbin/policy-rc.d':
-                self.create_fname(fname, mode=0755)
+                self.create_file(fname, mode=0755)
             else:
                 os.symlink('/bin/true', self.chroot_path(fname))
 
@@ -130,7 +127,7 @@ class FllChroot(object):
             # absolute path - so do not clobber the host's configuration.
             if os.path.islink(self.chroot_path(fname)):
                 continue
-            self.create_fname(fname)
+            self.create_file(fname)
 
         for fname in self.diverts:
             os.unlink(self.chroot_path(fname))
@@ -225,7 +222,7 @@ class FllChroot(object):
     def chroot_path(self, path):
         return os.path.join(self.path, path.lstrip('/'))
 
-    def create_fname(self, filename, mode=0644):
+    def create_file(self, filename, mode=0644):
         fh = None
         try:
             fh = open(self.chroot_path(filename), 'w')
@@ -276,8 +273,9 @@ class FllChroot(object):
 
         for type, dir in virtfs.items():
             cmd = ['mount', '-t', type, 'none', self.chroot_path(dir)]
-            retv = subprocess.call(cmd)
-            if retv != 0:
+            try:
+                subprocess.check_call(cmd)
+            except:
                 raise FllChrootError('failed to mount virtfs: ' + dir)
 
     def umountvirtfs(self):
@@ -296,12 +294,10 @@ class FllChroot(object):
         umount.reverse()
 
         for mnt in umount:
-            retv = subprocess.call(['umount', mnt])
-            if retv != 0:
-                subprocess.call(['umount', '-l', mnt])
-                # Raise an error: even though the lazy umount may have
-                # succeeded, something may be wrong.
-                raise FllChrootError('failed to umount : ' + mnt)
+            try:
+                subprocess.check_call(['umount', mnt])
+            except:
+                raise FllChrootError('failed to umount virtfs: ' + mnt)
 
     def nuke(self):
         """Remove the chroot from filesystem. All mount points in chroot
@@ -314,6 +310,11 @@ class FllChroot(object):
         except:
             raise FllChrootError('failed to nuke chroot: ' + self.path)
 
+    def chroot(self):
+        """Convenience function so that subprocess may be executed in chroot
+        via preexec_fn."""
+        os.chroot(self.path)
+
     def cmd(self, cmd):
         """Execute a command in the chroot."""
         if isinstance(cmd, str):
@@ -321,14 +322,34 @@ class FllChroot(object):
 
         print ' '.join(cmd)
 
-        pid = os.fork()
-        if pid == 0:
-            self.mountvirtfs()
-            os.chroot(self.path)
-            os.chdir('/')
-            os.execvpe(cmd[0], cmd, self.env)
-        else:
-            (id, retv) = os.waitpid(pid, 0)
+        self.mountvirtfs()
+
+        try:
+            proc = subprocess.Popen(cmd, preexec_fn=self.chroot, env=self.env)
+            proc.wait()
+            assert(proc.returncode == 0)
+        except:
+            raise FllChrootError('chrooted command failed: ' + ' '.join(cmd))
+        finally:
             self.umountvirtfs()
-            if retv != 0:
-                raise FllChrootError('chrooted cmd failed: ' + ' '.join(cmd))
+
+    def cmd_stdout(self, cmd):
+        """Execute a command in the chroot. Return stdout."""
+        if isinstance(cmd, str):
+            cmd = cmd.split()
+
+        print ' '.join(cmd)
+
+        self.mountvirtfs()
+
+        try:
+            proc = subprocess.Popen(cmd, preexec_fn=self.chroot, env=self.env,
+                                    stdout=subprocess.PIPE)
+            stdout = proc.communicate()[0]
+            assert(proc.returncode == 0)
+        except:
+            raise FllChrootError('chrooted command failed: ' + ' '.join(cmd))
+        finally:
+            self.umountvirtfs()
+
+        return stdout
