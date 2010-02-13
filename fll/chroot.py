@@ -12,14 +12,14 @@ import subprocess
 import shutil
 
 
-class FllChrootError(Exception):
+class ChrootError(Exception):
     """
-    An Error class for use by FllChroot.
+    An Error class for use by Chroot.
     """
     pass
 
 
-class FllChroot(object):
+class Chroot(object):
     """
     A class which provides the ability to bootstrap and execute commands
     within a chroot.
@@ -68,7 +68,7 @@ class FllChroot(object):
         elif bootstrapper == 'debootstrap':
             cmd.append('--variant=' + variant)
         else:
-            raise FllChrootError('unknown bootstrapper: ' + bootstrapper)
+            raise ChrootError('unknown bootstrapper: ' + bootstrapper)
 
         if arch:
             cmd.append('--arch=' + arch)
@@ -85,14 +85,14 @@ class FllChroot(object):
         if mirror:
             cmd.append(mirror)
         else:
-            raise FllChrootError('bootstrap() requires a mirror')
+            raise ChrootError('bootstrap() requires a mirror')
 
         print ' '.join(cmd)
 
         try:
             subprocess.check_call(cmd)
         except:
-            raise FllChrootError('bootstrap commmand failed: ' + ' '.join(cmd))
+            raise ChrootError('bootstrap commmand failed: ' + ' '.join(cmd))
 
         # Some flavours use cdebootstrap-helper-rc.d, some don't. We'll
         # impliment our our own policy-rc.d for consistency.
@@ -105,8 +105,7 @@ class FllChroot(object):
             os.unlink(self.chroot_path(fname))
             shutil.copy(fname, self.chroot_path(fname))
 
-        for fname in ('/etc/fstab', '/etc/hostname',
-                      '/etc/network/interfaces'):
+        for fname in ('/etc/fstab', '/etc/hostname'):
             self.create_file(fname)
 
         for fname in self.diverts:
@@ -133,79 +132,6 @@ class FllChroot(object):
             os.unlink(self.chroot_path(fname))
             cmd = 'dpkg-divert --remove --rename ' + fname
             self.cmd(cmd)
-
-    def apt_sources(self, sources, cached_uris=False, update=False):
-        """Write apt sources to file(s) in /etc/apt/sources.list.d/*.list."""
-        if os.path.isfile(self.chroot_path('/etc/apt/sources.list')):
-            os.unlink(self.chroot_path('/etc/apt/sources.list'))
-
-        gpgkeys = list()
-        keyrings = list()
-
-        for name, source in sources.items():
-            description = source.get('description')
-            uri = source.get('uri')
-            cached_uri = source.get('cached_uri')
-            suite = source.get('suite')
-            components = source.get('components')
-            
-            gpgkey = source.get('gpgkey')
-            if gpgkey:
-                gpgkeys.append(gpgkey)
-    
-            keyring = source.get('keyring')
-            if keyring:
-                keyrings.append(keyring)
-
-            if cached_uris and cached_uri:
-                line = '%s %s %s' % (cached_uri, suite, components)
-            else:
-                line = '%s %s %s' % (uri, suite, components)
-
-            fname = self.chroot_path('/etc/apt/sources.list.d/%s.list' % name)
-            
-            fh = None
-            try:
-                fh = open(fname, 'w')
-                print >>fh, '# ' + description
-                print >>fh, 'deb ' + line
-                print >>fh, 'deb-src ' + line
-            except IOError, e:
-                raise FllChrootError('failed to write apt sources.list: ' + e)
-            finally:
-                if fh:
-                    fh.close()
-
-        if not update:
-            return
-
-        for key in gpgkeys:
-            if not os.path.isdir(self.chroot_path('/root/.gnupg')):
-                os.mkdir(self.chroot_path('/root/.gnupg'))
-
-            cmd = 'gpg --no-options '
-
-            if os.path.isfile(key):
-                dest = self.chroot_path('/tmp/' + os.path.basename(key))
-                shutil.copy(key, dest)
-                cmd += '--import /tmp/' + os.path.basename(key)
-            elif key.startswith('http') or key.startswith('ftp'):
-                cmd += '--fetch-keys ' + key
-            else:
-                cmd += '--keyserver wwwkeys.eu.pgp.net --recv-keys ' + key
-
-            self.cmd(cmd)
-
-        if gpgkeys:
-            self.cmd('apt-key add /root/.gnupg/pubring.gpg')
-
-        if keyrings:
-            self.cmd('apt-get update')
-            cmd = 'apt-get --allow-unauthenticated --yes install'.split()
-            cmd.extend(keyrings)
-            self.cmd(cmd)
-
-        self.cmd('apt-get update')
 
     def chroot_path(self, path):
         return os.path.join(self.path, path.lstrip('/'))
@@ -237,15 +163,8 @@ class FllChroot(object):
                 print >>fh, 'ff02::2 ip6-allrouters'
                 print >>fh, 'ff02::3 ip6-allhosts'
 
-            elif filename == '/etc/network/interfaces':
-                print >>fh, '# /etc/network/interfaces'
-                print >>fh, '# Configuration file for ifup(8) and ifdown(8).\n'
-                print >>fh, '# The loopback interface'
-                print >>fh, 'auto lo'
-                print >>fh, 'iface lo inet loopback'
-
         except IOError:
-            raise FllChrootError('failed to write: ' + filename)
+            raise ChrootError('failed to write: ' + filename)
         finally:
             if fh:
                 fh.close()
@@ -260,7 +179,7 @@ class FllChroot(object):
             try:
                 subprocess.check_call(cmd)
             except:
-                raise FllChrootError('failed to mount virtfs: ' + dir)
+                raise ChrootError('failed to mount virtfs: ' + dir)
 
     def umountvirtfs(self):
         """Unmount virtual filesystems that are mounted within the chroot."""
@@ -272,7 +191,7 @@ class FllChroot(object):
                 if mnt.startswith(self.path):
                     umount.append(mnt)
         except IOError:
-            raise FllChrootError('failed to open /proc/mounts for reading')
+            raise ChrootError('failed to open /proc/mounts for reading')
 
         umount.sort(key=len)
         umount.reverse()
@@ -281,7 +200,7 @@ class FllChroot(object):
             try:
                 subprocess.check_call(['umount', mnt])
             except:
-                raise FllChrootError('failed to umount virtfs: ' + mnt)
+                raise ChrootError('failed to umount virtfs: ' + mnt)
 
     def nuke(self):
         """Remove the chroot from filesystem. All mount points in chroot
@@ -292,9 +211,9 @@ class FllChroot(object):
             if os.path.isdir(self.path):
                 shutil.rmtree(self.path)
         except:
-            raise FllChrootError('failed to nuke chroot: ' + self.path)
+            raise ChrootError('failed to nuke chroot: ' + self.path)
 
-    def chroot(self):
+    def __chroot(self):
         """Convenience function so that subprocess may be executed in chroot
         via preexec_fn."""
         os.chroot(self.path)
@@ -309,12 +228,12 @@ class FllChroot(object):
         self.mountvirtfs()
 
         try:
-            proc = subprocess.Popen(cmd, preexec_fn=self.chroot, env=self.env,
-                                    cwd='/')
+            proc = subprocess.Popen(cmd, preexec_fn=self.__chroot,
+                                    env=self.env, cwd='/')
             proc.wait()
             assert(proc.returncode == 0)
         except:
-            raise FllChrootError('chrooted command failed: ' + ' '.join(cmd))
+            raise ChrootError('chrooted command failed: ' + ' '.join(cmd))
         finally:
             self.umountvirtfs()
 
@@ -328,12 +247,13 @@ class FllChroot(object):
         self.mountvirtfs()
 
         try:
-            proc = subprocess.Popen(cmd, preexec_fn=self.chroot, env=self.env,
-                                    cwd='/', stdout=subprocess.PIPE)
+            proc = subprocess.Popen(cmd, preexec_fn=self.__chroot,
+                                    env=self.env, cwd='/',
+                                    stdout=subprocess.PIPE)
             stdout = proc.communicate()[0]
             assert(proc.returncode == 0)
         except:
-            raise FllChrootError('chrooted command failed: ' + ' '.join(cmd))
+            raise ChrootError('chrooted command failed: ' + ' '.join(cmd))
         finally:
             self.umountvirtfs()
 
