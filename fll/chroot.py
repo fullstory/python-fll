@@ -41,6 +41,9 @@ class FllChroot(object):
         self.path = path
         self.hostname = hostname
 
+    def __del__(self):
+        self.nuke()
+
     def bootstrap(self, bootstrapper='cdebootstrap', suite='sid',
                   flavour='minimal', variant='minbase',
                   arch=None, mirror=None, quiet=False, verbose=False,
@@ -306,7 +309,8 @@ class FllChroot(object):
         self.umountvirtfs()
 
         try:
-            shutil.rmtree(self.path)
+            if os.path.isdir(self.path):
+                shutil.rmtree(self.path)
         except:
             raise FllChrootError('failed to nuke chroot: ' + self.path)
 
