@@ -105,8 +105,8 @@ class FllChroot(object):
     def prep_chroot(self):
         """Configure the basics to get a functioning chroot."""
         for fname in ('/etc/hosts', '/etc/resolv.conf'):
-            os.unlink(self.chroot_fname(fname))
-            shutil.copy(fname, self.chroot_fname(fname))
+            os.unlink(self.chroot_path(fname))
+            shutil.copy(fname, self.chroot_path(fname))
 
         for fname in ('/etc/fstab', '/etc/hostname', '/etc/kernel-img.conf',
                       '/etc/network/interfaces'):
@@ -120,7 +120,7 @@ class FllChroot(object):
             if fname == '/usr/sbin/policy-rc.d':
                 self.create_fname(fname, mode=0755)
             else:
-                os.symlink('/bin/true', self.chroot_fname(fname))
+                os.symlink('/bin/true', self.chroot_path(fname))
 
     def post_chroot(self):
         """Undo any changes in the chroot which should be undone. Make any
@@ -128,19 +128,19 @@ class FllChroot(object):
         for fname in ('/etc/hosts', '/etc/motd.tail', '/etc/resolv.conf'):
             # /etc/resolv.conf (and possibly others) may be a symlink to an 
             # absolute path - so do not clobber the host's configuration.
-            if os.path.islink(self.chroot_fname(fname)):
+            if os.path.islink(self.chroot_path(fname)):
                 continue
             self.create_fname(fname)
 
         for fname in self.diverts:
-            os.unlink(self.chroot_fname(fname))
+            os.unlink(self.chroot_path(fname))
             cmd = 'dpkg-divert --remove --rename ' + fname
             self.cmd(cmd)
 
-        if os.path.isfile(self.chroot_fname('/usr/sbin/update-grub')):
+        if os.path.isfile(self.chroot_path('/usr/sbin/update-grub')):
             fh = None
             try:
-                fh = open(self.chroot_fname('/etc/kernel-img.conf'), 'a')
+                fh = open(self.chroot_path('/etc/kernel-img.conf'), 'a')
                 print >>fh, 'postinst_hook = /usr/sbin/update-grub'
                 print >>fh, 'postrm_hook   = /usr/sbin/update-grub'
             except IOError, e:
@@ -151,8 +151,8 @@ class FllChroot(object):
 
     def apt_sources(self, sources, cached_uris=False, update=False):
         """Write apt sources to file(s) in /etc/apt/sources.list.d/*.list."""
-        if os.path.isfile(self.chroot_fname('/etc/apt/sources.list')):
-            os.unlink(self.chroot_fname('/etc/apt/sources.list'))
+        if os.path.isfile(self.chroot_path('/etc/apt/sources.list')):
+            os.unlink(self.chroot_path('/etc/apt/sources.list'))
 
         gpgkeys = list()
         keyrings = list()
@@ -177,7 +177,7 @@ class FllChroot(object):
             else:
                 line = '%s %s %s' % (uri, suite, components)
 
-            fname = self.chroot_fname('/etc/apt/sources.list.d/%s.list' % name)
+            fname = self.chroot_path('/etc/apt/sources.list.d/%s.list' % name)
             
             fh = None
             try:
@@ -195,13 +195,13 @@ class FllChroot(object):
             return
 
         for key in gpgkeys:
-            if not os.path.isdir(self.chroot_fname('/root/.gnupg')):
-                os.mkdir(self.chroot_fname('/root/.gnupg'))
+            if not os.path.isdir(self.chroot_path('/root/.gnupg')):
+                os.mkdir(self.chroot_path('/root/.gnupg'))
 
             cmd = 'gpg --no-options '
 
             if os.path.isfile(key):
-                dest = self.chroot_fname('/tmp/' + os.path.basename(key))
+                dest = self.chroot_path('/tmp/' + os.path.basename(key))
                 shutil.copy(key, dest)
                 cmd += '--import /tmp/' + os.path.basename(key)
             elif key.startswith('http') or key.startswith('ftp'):
@@ -222,13 +222,13 @@ class FllChroot(object):
 
         self.cmd('apt-get update')
 
-    def chroot_fname(self, filename):
-        return os.path.join(self.path, filename.lstrip('/'))
+    def chroot_path(self, path):
+        return os.path.join(self.path, path.lstrip('/'))
 
     def create_fname(self, filename, mode=0644):
         fh = None
         try:
-            fh = open(self.chroot_fname(filename), 'w')
+            fh = open(self.chroot_path(filename), 'w')
 
             if filename == '/usr/sbin/policy-rc.d':
                 print >>fh, '#!/bin/sh'
@@ -268,17 +268,17 @@ class FllChroot(object):
         finally:
             if fh:
                 fh.close()
-                os.chmod(self.chroot_fname(filename), mode)
+                os.chmod(self.chroot_path(filename), mode)
 
     def mountvirtfs(self):
         """Mount /sys, /proc, /dev/pts virtual filesystems in the chroot."""
-        virtfs = {'devpts': 'dev/pts', 'proc': 'proc', 'sysfs': 'sys'}
+        virtfs = {'devpts': '/dev/pts', 'proc': '/proc', 'sysfs': '/sys'}
 
-        for v in virtfs.items():
-            cmd = ['mount', '-t', v[0], 'none', os.path.join(self.path, v[1])]
+        for type, dir in virtfs.items():
+            cmd = ['mount', '-t', type, 'none', self.chroot_path(dir)]
             retv = subprocess.call(cmd)
             if retv != 0:
-                raise FllChrootError('failed to mount virtfs: ' + v[0])
+                raise FllChrootError('failed to mount virtfs: ' + dir)
 
     def umountvirtfs(self):
         """Unmount virtual filesystems that are mounted within the chroot."""
