@@ -26,6 +26,8 @@ class Chroot(object):
 
     Arguments:
     path     - path to root of chroot
+
+    Options:
     hostname - hostname of chroot
     """
     path = None
@@ -38,7 +40,7 @@ class Chroot(object):
                '/usr/sbin/update-grub', '/usr/sbin/update-initramfs']
 
     def __init__(self, path, hostname='chroot'):
-        self.path = path
+        self.path = os.path.realpath(path)
         self.hostname = hostname
 
     def __del__(self):
@@ -222,11 +224,9 @@ class Chroot(object):
         """Execute a command in the chroot."""
         if isinstance(cmd, str):
             cmd = cmd.split()
-
         print ' '.join(cmd)
 
         self.mountvirtfs()
-
         try:
             proc = subprocess.Popen(cmd, preexec_fn=self.__chroot,
                                     env=self.env, cwd='/')
@@ -241,11 +241,9 @@ class Chroot(object):
         """Execute a command in the chroot. Return stdout."""
         if isinstance(cmd, str):
             cmd = cmd.split()
-
         print ' '.join(cmd)
 
         self.mountvirtfs()
-
         try:
             proc = subprocess.Popen(cmd, preexec_fn=self.__chroot,
                                     env=self.env, cwd='/',

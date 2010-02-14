@@ -22,16 +22,14 @@ build: build-python build-man
 install: install-python install-man
 clean: clean-python clean-man
 	find . -type f -name \*.pyc -delete
-	$(RM) build-* install-* test-*
+	$(RM) build-* install-*
 
-test: test-python
-test-python:
+test:
 ifneq "$(wildcard tests/*.py)" ""
-	nosetests -v -w tests
+	nosetests -s -v
 else
 	$(info Test suite is not implemented...)
 endif
-	touch $@
 
 ifneq "$(wildcard debian/control)" ""
 PYVERS := $(shell pyversions -r -v debian/control)

@@ -3,10 +3,15 @@ python-fll (0.0.8) UNRELEASED; urgency=low
   NO NEED TO RELEASE - WIP
   
   [ Kel Modderman ]
-  * Add a FllChroot class (fll/chroot.py) for bootstrapping and doing
-    useful things in chroots.
+  * Add a Chroot class (fll/chroot.py) for bootstrapping a chroot and
+    executing commands in it.
+  * Add an Apt class (fll/apt.py) for using apt and apt_pkg in a chroot.
+  * Add conf/fll.conf, a configuration file for a future program based on
+    python-fll classes.
+  * Add a nose test directory and first test script.
+  * Build-Depend on python-nose.
 
- -- Kel Modderman <kel@otaku42.de>  Fri, 12 Feb 2010 09:25:58 +1000
+ -- Kel Modderman <kel@otaku42.de>  Sun, 14 Feb 2010 19:58:51 +1000
 
 python-fll (0.0.7) unstable; urgency=low
 
