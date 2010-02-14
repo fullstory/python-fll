@@ -9,9 +9,9 @@ python-fll (0.0.8) UNRELEASED; urgency=low
   * Add conf/fll.conf, a configuration file for a future program based on
     python-fll classes.
   * Add a nose test directory and first test script.
-  * Build-Depend on python-nose.
+  * Build-Depend on python-nose and python-configobj.
 
- -- Kel Modderman <kel@otaku42.de>  Sun, 14 Feb 2010 19:58:51 +1000
+ -- Kel Modderman <kel@otaku42.de>  Sun, 14 Feb 2010 20:26:57 +1000
 
 python-fll (0.0.7) unstable; urgency=low
 
