@@ -23,7 +23,8 @@ class TestConfig(object):
         conf = ConfigObj(conffile, configspec=specfile)
         validator = Validator()
         results = conf.validate(validator)
-        assert results == False
+        assert results['apt']['sources']['distro']['suite'] == False
+        assert results['apt']['sources']['distro']['components'] == False
 
     def tearDown(self):
         pass
