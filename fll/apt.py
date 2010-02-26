@@ -7,8 +7,12 @@ Copyright: Copyright (C) 2010 Kel Modderman <kel@otaku42.de>
 License:   GPL-2
 """
 
+from __future__ import with_statement
+from contextlib import nested
+
 import os
 import shutil
+import tempfile
 
 
 class AptError(Exception):
@@ -96,6 +100,14 @@ class Apt(object):
                     if fh:
                         fh.close()
 
+    def _gpg(self, args):
+        gpg = ['gpg', '--batch', '--no-options', '--no-default-keyring',
+               '--secret-keyring', '/etc/apt/secring.gpg',
+               '--trustdb-name', '/etc/apt/trustdb.gpg',
+               '--keyring', '/etc/apt/trusted.gpg']
+        gpg.extend(args)
+        self.chroot.cmd(gpg)
+
     def prep_apt_gpgkeys(self, sources):
         """Import and gpg keys, install any -keyring packages that are
         required to authenticate apt sources.
@@ -114,25 +126,31 @@ class Apt(object):
             if keyring:
                 keyrings.append(keyring)
 
+        fetch_keys = list()
+        recv_keys = list()
+
         for key in gpgkeys:
-            if not os.path.isdir(self.chroot.chroot_path('/root/.gnupg')):
-                os.mkdir(self.chroot.chroot_path('/root/.gnupg'))
-
-            cmd = 'gpg --no-options '
-
             if os.path.isfile(key):
-                dest = self.chroot.chroot_path('/tmp/' + os.path.basename(key))
-                shutil.copy(key, dest)
-                cmd += '--import /tmp/' + os.path.basename(key)
-            elif key.startswith('http') or key.startswith('ftp'):
-                cmd += '--fetch-keys ' + key
+                with nested(tempfile.NamedTemporaryFile(dir=self.chroot.path),
+                            file(key)) as (fdst, fsrc):
+                    shutil.copyfileobj(fsrc, fdst)
+                    fdst.flush()
+                    self._gpg(['--import',
+                               self.chroot.chroot_path_rel(fdst.name)])
+            elif len(key) == 8:
+                recv_keys.append(key)
             else:
-                cmd += '--keyserver wwwkeys.eu.pgp.net --recv-keys ' + key
+                fetch_keys.append(key)
 
-            self.chroot.cmd(cmd)
+        if recv_keys:
+            recv_keys.insert(0, '--keyserver')
+            recv_keys.insert(1, 'wwwkeys.eu.pgp.net')
+            recv_keys.insert(2, '--recv-keys')
+            self._gpg(recv_keys)
 
-        if gpgkeys:
-            self.chroot.cmd('apt-key add /root/.gnupg/pubring.gpg')
+        if fetch_keys:
+            fetch_keys.insert(0, '--fetch-keys')
+            self._gpg(fetch_keys)
 
         if keyrings:
             self.chroot.cmd('apt-get update')

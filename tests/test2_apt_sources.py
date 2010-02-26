@@ -18,8 +18,6 @@ class TestAptSources(object):
         
         path = self.chroot.chroot_path('/etc/apt/sources.list.d/*.list')
         lists = glob.glob(path)
-        #print lists
-        #raw_input('Check tests/root/etc/apt/, press return key.')
         assert len(lists) == 4
 
     def tearDown(self):

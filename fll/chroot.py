@@ -7,9 +7,16 @@ Copyright: Copyright (C) 2010 Kel Modderman <kel@otaku42.de>
 License:   GPL-2
 """
 
+from __future__ import with_statement
+
+import fll.misc
 import os
 import subprocess
+import shlex
 import shutil
+import signal
+import sys
+import tempfile
 
 
 class ChrootError(Exception):
@@ -43,7 +50,10 @@ class Chroot(object):
         self.path = os.path.realpath(path)
         self.hostname = hostname
 
-    def __del__(self):
+    def __enter__(self):
+        return self
+
+    def __exit__(self, type, value, traceback):
         self.nuke()
 
     def bootstrap(self, bootstrapper='cdebootstrap', suite='sid',
@@ -54,18 +64,9 @@ class Chroot(object):
         """Bootstrap a Debian chroot. By default it will bootstrap a minimal
         sid chroot with cdebootstrap."""
 
-        cmd = list()
-        cmd.append(bootstrapper)
-
-        if verbose:
-            cmd.append('--verbose')
+        cmd = [bootstrapper]
 
         if bootstrapper == 'cdebootstrap':
-            if quiet:
-                cmd.append('--quiet')
-            elif debug:
-                cmd.append('--debug')
-
             cmd.append('--flavour=' + flavour)
         elif bootstrapper == 'debootstrap':
             cmd.append('--variant=' + variant)
@@ -81,20 +82,25 @@ class Chroot(object):
         if exclude:
             cmd.append('--exclude=' + (',').join(exclude))
         
+        if verbose:
+            cmd.append('--verbose')        
+        
+        if debug and bootstrapper == 'cdebootstrap':
+            cmd.append('--debug')
+
+        if quiet and bootstrapper == 'cdebootstrap':
+            cmd.append('--quiet')
+        
         cmd.append(suite)
         cmd.append(self.path)
-
-        if mirror:
-            cmd.append(mirror)
-        else:
-            raise ChrootError('bootstrap() requires a mirror')
+        cmd.append(mirror)
 
         print ' '.join(cmd)
 
         try:
-            subprocess.check_call(cmd)
-        except:
-            raise ChrootError('bootstrap commmand failed: ' + ' '.join(cmd))
+            subprocess.check_call(cmd, preexec_fn=fll.misc.restore_sigpipe)
+        except (subprocess.CalledProcessError, OSError):
+            raise ChrootError('bootstrap command failed')
 
         # Some flavours use cdebootstrap-helper-rc.d, some don't. We'll
         # impliment our our own policy-rc.d for consistency.
@@ -120,7 +126,14 @@ class Chroot(object):
             else:
                 os.symlink('/bin/true', self.chroot_path(fname))
 
-    def post_chroot(self):
+        dss = '/usr/bin/debconf-set-selections'
+        if os.path.exists(self.chroot_path('/usr/bin/debconf-set-selections')):
+            with tempfile.NamedTemporaryFile(dir=self.path) as selections:
+                print >>selections, 'man-db man-db/auto-update boolean false'
+                selections.flush()
+                self.cmd([dss, '-v', self.chroot_path_rel(selections.name)])
+
+    def undo_prep_chroot(self):
         """Undo any changes in the chroot which should be undone. Make any
         final configurations."""
         for fname in ('/etc/hosts', '/etc/resolv.conf'):
@@ -135,8 +148,18 @@ class Chroot(object):
             cmd = 'dpkg-divert --remove --rename ' + fname
             self.cmd(cmd)
 
+        dss = '/usr/bin/debconf-set-selections'
+        if os.path.exists(self.chroot_path('/usr/bin/debconf-set-selections')):
+            with tempfile.NamedTemporaryFile(dir=self.path) as selections:
+                print >>selections, 'man-db man-db/auto-update boolean true'
+                selections.flush()
+                self.cmd([dss, '-v', self.chroot_path_rel(selections.name)])
+
     def chroot_path(self, path):
         return os.path.join(self.path, path.lstrip('/'))
+
+    def chroot_path_rel(self, path):
+        return path.replace(self.path, '')
 
     def create_file(self, filename, mode=0644):
         fh = None
@@ -176,32 +199,31 @@ class Chroot(object):
         """Mount /sys, /proc, /dev/pts virtual filesystems in the chroot."""
         virtfs = {'devpts': '/dev/pts', 'proc': '/proc', 'sysfs': '/sys'}
 
-        for type, dir in virtfs.items():
-            cmd = ['mount', '-t', type, 'none', self.chroot_path(dir)]
+        for vfstype, mnt in virtfs.items():
+            cmd = ['mount', '-t', vfstype, 'none', self.chroot_path(mnt)]
             try:
-                subprocess.check_call(cmd)
-            except:
-                raise ChrootError('failed to mount virtfs: ' + dir)
+                subprocess.check_call(cmd, preexec_fn=fll.misc.restore_sigpipe)
+            except (subprocess.CalledProcessError, OSError):
+                raise ChrootError('failed to mount virtfs: ' + mnt)
 
     def umountvirtfs(self):
         """Unmount virtual filesystems that are mounted within the chroot."""
         umount = list()
 
-        try:
-            for line in open('/proc/mounts'):
-                (dev, mnt, fs, options, d, p) = line.split()
+        with open('/proc/mounts') as mounts:
+            for line in mounts:
+                name, mnt, vfstype, opts, freqno, passno = line.split()
                 if mnt.startswith(self.path):
                     umount.append(mnt)
-        except IOError:
-            raise ChrootError('failed to open /proc/mounts for reading')
 
         umount.sort(key=len)
         umount.reverse()
 
         for mnt in umount:
             try:
-                subprocess.check_call(['umount', mnt])
-            except:
+                subprocess.check_call(['umount', mnt],
+                                      preexec_fn=fll.misc.restore_sigpipe)
+            except (subprocess.CalledProcessError, OSError):
                 raise ChrootError('failed to umount virtfs: ' + mnt)
 
     def nuke(self):
@@ -212,47 +234,54 @@ class Chroot(object):
         try:
             if os.path.isdir(self.path):
                 shutil.rmtree(self.path)
-        except:
+        except IOError:
             raise ChrootError('failed to nuke chroot: ' + self.path)
 
-    def __chroot(self):
+    def _chroot(self):
         """Convenience function so that subprocess may be executed in chroot
-        via preexec_fn."""
+        via preexec_fn. Restore SIGPIPE."""
+        fll.misc.restore_sigpipe()
         os.chroot(self.path)
 
     def cmd(self, cmd):
         """Execute a command in the chroot."""
         if isinstance(cmd, str):
-            cmd = cmd.split()
-        print ' '.join(cmd)
+            cmd = shlex.split(cmd)
+        print 'chroot[%s]: %s' % (self.path, ' '.join(cmd))
 
         self.mountvirtfs()
         try:
-            proc = subprocess.Popen(cmd, preexec_fn=self.__chroot,
+            proc = subprocess.Popen(cmd, preexec_fn=self._chroot,
                                     env=self.env, cwd='/')
             proc.wait()
-            assert(proc.returncode == 0)
-        except:
-            raise ChrootError('chrooted command failed: ' + ' '.join(cmd))
+        except OSError:
+            raise ChrootError('chrooted command failed: ' + OSError.strerror)
         finally:
             self.umountvirtfs()
+
+        if proc.returncode != 0:
+            raise ChrootError('chrooted command returncode=%d: %s' %
+                              (proc.returncode, ' '.join(cmd)))
 
     def cmd_stdout(self, cmd):
         """Execute a command in the chroot. Return stdout."""
         if isinstance(cmd, str):
-            cmd = cmd.split()
-        print ' '.join(cmd)
+            cmd = shlex.split(cmd)
+        print 'chroot[%s]: %s' % (self.path, ' '.join(cmd))
 
         self.mountvirtfs()
         try:
-            proc = subprocess.Popen(cmd, preexec_fn=self.__chroot,
+            proc = subprocess.Popen(cmd, preexec_fn=self._chroot,
                                     env=self.env, cwd='/',
                                     stdout=subprocess.PIPE)
-            stdout = proc.communicate()[0]
-            assert(proc.returncode == 0)
-        except:
-            raise ChrootError('chrooted command failed: ' + ' '.join(cmd))
+            stdout, stderr = proc.communicate()
+        except OSError:
+            raise ChrootError('chrooted command failed: ' + OSError.strerror)
         finally:
             self.umountvirtfs()
+
+        if proc.returncode != 0:
+            raise ChrootError('chrooted command returncode=%d: %s' %
+                              (proc.returncode, ' '.join(cmd)))
 
         return stdout
