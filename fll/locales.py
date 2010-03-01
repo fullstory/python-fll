@@ -75,8 +75,8 @@ class FllLocales(object):
             if not pkg.version_list:
                 continue
             for loc_pkg in self.loc_pkgs_set:
-                if pkg.Name.startswith(loc_pkg + '-'):
-                    self.loc_pkgs_list_dict[loc_pkg].append(pkg.Name)
+                if pkg.name.startswith(loc_pkg + '-'):
+                    self.loc_pkgs_list_dict[loc_pkg].append(pkg.name)
 
     def __compute_locale_loc_suf_list(self, locale):
         """

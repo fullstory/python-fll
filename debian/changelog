@@ -1,3 +1,11 @@
+python-fll (0.0.8) unstable; urgency=low
+
+  * update for new python-apt API:
+  - Attribute 'Name' of the 'apt_pkg.Package' object is deprecated, use
+    'name' instead.'
+
+ -- Stefan Lippers-Hollmann <s.l-h@gmx.de>  Mon, 01 Mar 2010 19:31:02 +0100
+
 python-fll (0.0.7) unstable; urgency=low
 
   * Bump standards-version to 3.8.4 without any extra changes needed.
