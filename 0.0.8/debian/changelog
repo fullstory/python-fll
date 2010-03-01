@@ -1,0 +1,60 @@
+python-fll (0.0.8) unstable; urgency=low
+
+  * update for new python-apt API:
+  - Attribute 'Name' of the 'apt_pkg.Package' object is deprecated, use
+    'name' instead.'
+
+ -- Stefan Lippers-Hollmann <s.l-h@gmx.de>  Mon, 01 Mar 2010 19:31:02 +0100
+
+python-fll (0.0.7) unstable; urgency=low
+
+  * Bump standards-version to 3.8.4 without any extra changes needed.
+  * Update locales module to new python-apt API.
+  * Add setup.cfg to make sure scripts are installed to correct
+    location.
+  * Build-Depend on python-all and not python-all-dev, as we are
+    producing binary: all content only.
+
+ -- Kel Modderman <kel@otaku42.de>  Thu, 11 Feb 2010 20:34:07 +1000
+
+python-fll (0.0.6) unstable; urgency=low
+
+  * add libxml2-utils to build-depends.
+
+ -- Stefan Lippers-Hollmann <s.l-h@gmx.de>  Tue, 29 Dec 2009 00:44:28 +0100
+
+python-fll (0.0.5) unstable; urgency=low
+
+  * drop k3b from locale heuristics, there are none for k3b v2 yet.
+  * bump standards version to 3.8.3, no changes necessary.
+
+ -- Stefan Lippers-Hollmann <s.l-h@gmx.de>  Tue, 29 Dec 2009 00:40:36 +0100
+
+python-fll (0.0.4) unstable; urgency=low
+
+  * remove gwenview handling, it conflicts with kde-l10n-de.
+
+ -- Stefan Lippers-Hollmann <s.l-h@gmx.de>  Wed, 01 Jul 2009 17:43:24 +0200
+
+python-fll (0.0.3) unstable; urgency=low
+
+  * add new locale mappings for kde4/ koffice.
+  * bump standards version to 3.8.2, no changes necessary.
+
+ -- Stefan Lippers-Hollmann <s.l-h@gmx.de>  Tue, 30 Jun 2009 00:42:49 +0200
+
+python-fll (0.0.2) unstable; urgency=low
+
+  * make lintian happy and depend on ${misc:Depends}.
+
+ -- Stefan Lippers-Hollmann <s.l-h@gmx.de>  Mon, 08 Dec 2008 22:56:41 +0100
+
+python-fll (0.0.1) unstable; urgency=low
+
+  [ Kel Modderman ]
+  * Initial release.
+
+  [ Niall Walsh ]
+  * Tweak language package detection to do more exact matching
+
+ -- Niall Walsh <niallwalsh@users.berlios.de>  Tue, 25 Nov 2008 22:06:13 +0000
