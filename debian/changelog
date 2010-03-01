@@ -11,7 +11,12 @@ python-fll (0.0.8) UNRELEASED; urgency=low
   * Add a nose test directory and first test script.
   * Build-Depend on python-nose and python-configobj.
 
- -- Kel Modderman <kel@otaku42.de>  Sun, 14 Feb 2010 20:26:57 +1000
+  [ Stefan Lippers-Hollmann ]
+  * update for new python-apt API:
+    - Attribute 'Name' of the 'apt_pkg.Package' object is deprecated, use
+      'name' instead.'
+
+ -- Stefan Lippers-Hollmann <s.l-h@gmx.de>  Mon, 01 Mar 2010 15:22:11 +0100
 
 python-fll (0.0.7) unstable; urgency=low
 
