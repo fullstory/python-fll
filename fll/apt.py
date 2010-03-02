@@ -34,7 +34,7 @@ class Apt(object):
     def __init__(self, chroot):
         self.chroot = chroot
 
-    def prep_apt_sources(self, sources, cached_uris=False):
+    def prep_apt_sources(self, sources, cached_uris=False, src_uris=False):
         """Write apt sources to file(s) in /etc/apt/sources.list.d/*.list.
         Create /etc/apt/sources.list with some boilerplate text about
         the lists in /etc/apt/sources.list.d/.
@@ -93,7 +93,8 @@ class Apt(object):
                 try:
                     fh = open(self.chroot.chroot_path(fname), 'a')
                     print >>fh, 'deb ' + line
-                    print >>fh, 'deb-src ' + line
+                    if src_uris:
+                        print >>fh, 'deb-src ' + line
                 except IOError, e:
                     raise AptError('failed to write %s: %s' % (fname, e))
                 finally:
