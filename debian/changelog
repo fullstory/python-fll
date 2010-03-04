@@ -1,7 +1,5 @@
-python-fll (0.1.0) UNRELEASED; urgency=low
+python-fll (0.1.0) unstable; urgency=low
 
-  NO NEED TO RELEASE - WIP
-  
   [ Kel Modderman ]
   * Add a Chroot class (fll/chroot.py) for bootstrapping a chroot and
     executing commands in it.
@@ -15,8 +13,9 @@ python-fll (0.1.0) UNRELEASED; urgency=low
   * update for new python-apt API:
     - Attribute 'Name' of the 'apt_pkg.Package' object is deprecated, use
       'name' instead.'
+  * switch to dpkg-source 3.0 (native) format.
 
- -- Stefan Lippers-Hollmann <s.l-h@gmx.de>  Mon, 01 Mar 2010 15:22:11 +0100
+ -- Stefan Lippers-Hollmann <s.l-h@gmx.de>  Thu, 04 Mar 2010 01:35:43 +0100
 
 python-fll (0.0.7) unstable; urgency=low
 
