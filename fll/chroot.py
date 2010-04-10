@@ -33,28 +33,28 @@ class Chroot(object):
 
     Arguments:
     path     - path to root of chroot
+    arch     - architecture of chroot
 
     Options:
-    hostname - hostname of chroot
+    hostname - (str)  hostname of chroot
+    preserve - (bool) preserve chroot filesystem, default False
     """
-    path = None
-    hostname = None
-    env = {'LANGUAGE': 'C', 'LC_ALL': 'C', 'LANG' : 'C', 'HOME': '/root',
-           'PATH': '/usr/sbin:/usr/bin:/sbin:/bin', 'SHELL': '/bin/bash',
-           'DEBIAN_FRONTEND': 'noninteractive', 'DEBIAN_PRIORITY': 'critical',
-           'DEBCONF_NOWARNINGS': 'yes'}
     diverts = ['/usr/sbin/policy-rc.d', '/sbin/modprobe', '/sbin/insmod',
-               '/usr/sbin/update-grub', '/usr/sbin/update-initramfs']
+               '/usr/sbin/update-grub', '/usr/sbin/update-initramfs',
+               '/sbin/initctl', '/sbin/start-stop-daemon']
 
-    def __init__(self, path, hostname='chroot'):
+    def __init__(self, path, arch, hostname='chroot', preserve=False):
         self.path = os.path.realpath(path)
+        self.arch = arch
         self.hostname = hostname
+        self.preserve = preserve
 
     def __enter__(self):
         return self
 
     def __exit__(self, type, value, traceback):
-        self.nuke()
+        if not self.preserve:
+            self.nuke()
 
     def bootstrap(self, bootstrapper='cdebootstrap', suite='sid',
                   flavour='minimal', variant='minbase',
@@ -75,19 +75,14 @@ class Chroot(object):
 
         if arch:
             cmd.append('--arch=' + arch)
-
         if include:
             cmd.append('--include=' + (',').join(include))
-
         if exclude:
             cmd.append('--exclude=' + (',').join(exclude))
-        
         if verbose:
             cmd.append('--verbose')        
-        
         if debug and bootstrapper == 'cdebootstrap':
             cmd.append('--debug')
-
         if quiet and bootstrapper == 'cdebootstrap':
             cmd.append('--quiet')
         
@@ -107,6 +102,18 @@ class Chroot(object):
         if bootstrapper == 'cdebootstrap':
             self.cmd('dpkg --purge cdebootstrap-helper-rc.d'.split())
 
+    def debconf_set_selections(self, selections):
+        dss = '/usr/bin/debconf-set-selections'
+
+        if not os.path.exists(self.chroot_path(dss)):
+            return
+
+        with tempfile.NamedTemporaryFile(dir=self.path) as fh:
+            for line in selections:
+                print >>fh, line
+            fh.flush()
+            self.cmd([dss, self.chroot_path_rel(fh.name)])
+
     def prep_chroot(self):
         """Configure the basics to get a functioning chroot."""
         for fname in ('/etc/hosts', '/etc/resolv.conf'):
@@ -120,18 +127,10 @@ class Chroot(object):
             cmd = 'dpkg-divert --add --local --divert ' + fname + '.REAL'
             cmd += ' --rename ' + fname
             self.cmd(cmd)
+            self.create_file(fname, mode=0755)
 
-            if fname == '/usr/sbin/policy-rc.d':
-                self.create_file(fname, mode=0755)
-            else:
-                os.symlink('/bin/true', self.chroot_path(fname))
-
-        dss = '/usr/bin/debconf-set-selections'
-        if os.path.exists(self.chroot_path('/usr/bin/debconf-set-selections')):
-            with tempfile.NamedTemporaryFile(dir=self.path) as selections:
-                print >>selections, 'man-db man-db/auto-update boolean false'
-                selections.flush()
-                self.cmd([dss, '-v', self.chroot_path_rel(selections.name)])
+        debconf = ['man-db man-db/auto-update boolean false']
+        self.debconf_set_selections(debconf)
 
     def undo_prep_chroot(self):
         """Undo any changes in the chroot which should be undone. Make any
@@ -148,12 +147,10 @@ class Chroot(object):
             cmd = 'dpkg-divert --remove --rename ' + fname
             self.cmd(cmd)
 
-        dss = '/usr/bin/debconf-set-selections'
-        if os.path.exists(self.chroot_path('/usr/bin/debconf-set-selections')):
-            with tempfile.NamedTemporaryFile(dir=self.path) as selections:
-                print >>selections, 'man-db man-db/auto-update boolean true'
-                selections.flush()
-                self.cmd([dss, '-v', self.chroot_path_rel(selections.name)])
+        debconf = ['man-db man-db/auto-update boolean true']
+        self.debconf_set_selections(debconf)
+        if os.path.exists(self.chroot_path('/usr/bin/mandb')):
+            self.cmd('/usr/bin/mandb --create --quiet')
 
     def chroot_path(self, path):
         return os.path.join(self.path, path.lstrip('/'))
@@ -166,27 +163,38 @@ class Chroot(object):
         try:
             fh = open(self.chroot_path(filename), 'w')
 
-            if filename == '/usr/sbin/policy-rc.d':
-                print >>fh, '#!/bin/sh'
-                print >>fh, 'echo "$0 denied action: \`$1 $2\'" >&2'
-                print >>fh, 'exit 101'
+            if filename in self.diverts:
+                if filename.endswith('policy-rc.d'):
+                    retv = 101
+                else:
+                    retv = 0
+
+                print >>fh, """\
+#!/bin/sh
+echo 1>&2
+echo "Command denied: $0 $@" 1>&2
+echo 1>&2
+exit %d""" % retv
 
             elif filename == '/etc/fstab':
-                print >>fh, '# /etc/fstab: static file system information.'
+                print >>fh, """\
+# /etc/fstab: static file system information."""
 
             elif filename == '/etc/hostname':
                 print >>fh, self.hostname
 
             elif filename == '/etc/hosts':
-                print >>fh, '127.0.0.1\tlocalhost'
-                print >>fh, '127.0.0.1\t' + self.hostname + '\n'
-                print >>fh, '# Below lines are for IPv6 capable hosts'
-                print >>fh, '::1     ip6-localhost ip6-loopback'
-                print >>fh, 'fe00::0 ip6-localnet'
-                print >>fh, 'ff00::0 ip6-mcastprefix'
-                print >>fh, 'ff02::1 ip6-allnodes'
-                print >>fh, 'ff02::2 ip6-allrouters'
-                print >>fh, 'ff02::3 ip6-allhosts'
+                print >>fh, """\
+127.0.0.1\tlocalhost
+127.0.0.1\t%s
+
+# Below lines are for IPv6 capable hosts
+::1     ip6-localhost ip6-loopback
+fe00::0 ip6-localnet
+ff00::0 ip6-mcastprefix
+ff02::1 ip6-allnodes
+ff02::2 ip6-allrouters
+ff02::3 ip6-allhosts""" % self.hostname
 
         except IOError:
             raise ChrootError('failed to write: ' + filename)
@@ -243,19 +251,24 @@ class Chroot(object):
         fll.misc.restore_sigpipe()
         os.chroot(self.path)
 
-    def cmd(self, cmd):
+    def cmd(self, cmd, pipe=False):
         """Execute a command in the chroot."""
         if isinstance(cmd, str):
             cmd = shlex.split(cmd)
-        print 'chroot[%s]: %s' % (self.path, ' '.join(cmd))
+
+        print 'chroot %s %s' % (self.path, ' '.join(cmd))
 
         self.mountvirtfs()
         try:
-            proc = subprocess.Popen(cmd, preexec_fn=self._chroot,
-                                    env=self.env, cwd='/')
+            if pipe:
+                proc = subprocess.Popen(cmd, preexec_fn=self._chroot, cwd='/',
+                                    stdout=subprocess.PIPE,
+                                    stderr=subprocess.PIPE)
+            else:
+                proc = subprocess.Popen(cmd, preexec_fn=self._chroot, cwd='/')
             proc.wait()
-        except OSError:
-            raise ChrootError('chrooted command failed: ' + OSError.strerror)
+        except OSError, e:
+            raise ChrootError('chrooted command failed: %s' % e)
         finally:
             self.umountvirtfs()
 
@@ -263,25 +276,5 @@ class Chroot(object):
             raise ChrootError('chrooted command returncode=%d: %s' %
                               (proc.returncode, ' '.join(cmd)))
 
-    def cmd_stdout(self, cmd):
-        """Execute a command in the chroot. Return stdout."""
-        if isinstance(cmd, str):
-            cmd = shlex.split(cmd)
-        print 'chroot[%s]: %s' % (self.path, ' '.join(cmd))
-
-        self.mountvirtfs()
-        try:
-            proc = subprocess.Popen(cmd, preexec_fn=self._chroot,
-                                    env=self.env, cwd='/',
-                                    stdout=subprocess.PIPE)
-            stdout, stderr = proc.communicate()
-        except OSError:
-            raise ChrootError('chrooted command failed: ' + OSError.strerror)
-        finally:
-            self.umountvirtfs()
-
-        if proc.returncode != 0:
-            raise ChrootError('chrooted command returncode=%d: %s' %
-                              (proc.returncode, ' '.join(cmd)))
-
-        return stdout
+        if pipe:
+            return proc.communicate()

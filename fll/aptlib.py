@@ -1,5 +1,5 @@
 """
-This is the fll.apt module, it provides a class for preparing and using
+This is the fll.aptlib module, it provides a class for preparing and using
 apt in a chroot.
 
 Authour:   Kel Modderman
@@ -10,37 +10,59 @@ License:   GPL-2
 from __future__ import with_statement
 from contextlib import nested
 
+import subprocess
+import apt.cache
+import apt.progress
+import apt.package
+import apt_pkg
 import os
 import shutil
 import tempfile
 
 
-class AptError(Exception):
+class AptLibError(Exception):
     """
-    An Error class for use by Apt.
+    An Error class for use by AptLib.
     """
     pass
 
 
-class Apt(object):
+class AptLib(object):
     """
     A class for preparing and using apt within a chroot.
 
     Arguments:
-    chroot - an fll.chroot.Chroot object
+    chroot - (str) an fll.chroot.Chroot object
     """
-    chroot = None
-
-    def __init__(self, chroot):
+    def __init__(self, chroot, sources, cached_uris=False, src_uris=False):
         self.chroot = chroot
+        self.sources = sources
 
-    def prep_apt_sources(self, sources, cached_uris=False, src_uris=False):
+        self.prep_apt_sources(cached_uris=cached_uris, src_uris=src_uris)
+
+        apt_pkg.init()
+        # required for working on a chroot of differing architecture to host
+        apt_pkg.config.set('APT::Architecture', self.chroot.arch)
+        # dpkg executed within chroot
+        apt_pkg.config.set('Dpkg::Chroot-Directory', self.chroot.path)
+        # dpkg executed on host, using chroot admindir + instdir
+        #apt_pkg.config.set('Dpkg::Options::', '--root=%s' % self.chroot.path)
+
+        self.cache = self.prep_cache()
+
+    def prep_cache(self):
+        cache = apt.cache.Cache(progress=apt.progress.base.OpProgress(),
+                                rootdir=self.chroot.path)
+
+        # Avoid apt-listchanges / dpkg-preconfigure
+        apt_pkg.Config.clear("DPkg::Pre-Install-Pkgs")
+
+        return cache
+
+    def prep_apt_sources(self, cached_uris=False, src_uris=False):
         """Write apt sources to file(s) in /etc/apt/sources.list.d/*.list.
         Create /etc/apt/sources.list with some boilerplate text about
-        the lists in /etc/apt/sources.list.d/.
-        
-        Arguments:
-        sources - a dict structure containing repoistory data"""
+        the lists in /etc/apt/sources.list.d/."""
         def write_sources_list_comment(filename, lines, mode='w'):
             fh = None
             try:
@@ -56,7 +78,7 @@ class Apt(object):
                     fh.write('# ')
                 fh.write('#\n')
             except IOError, e:
-                raise AptError('failed to modify sources.list: ' + e)
+                raise AptLibError('failed to modify sources.list: ' + e)
             finally:
                 if fh:
                     fh.close()
@@ -71,7 +93,7 @@ class Apt(object):
                  'managed via the apt-cdrom utility.']
         write_sources_list_comment(sources_list, lines)
 
-        for name, source in sources.items():
+        for name, source in self.sources.items():
             description = source.get('description')
             uri = source.get('uri')
             cached_uri = source.get('cached_uri')
@@ -96,7 +118,7 @@ class Apt(object):
                     if src_uris:
                         print >>fh, 'deb-src ' + line
                 except IOError, e:
-                    raise AptError('failed to write %s: %s' % (fname, e))
+                    raise AptLibError('failed to write %s: %s' % (fname, e))
                 finally:
                     if fh:
                         fh.close()
@@ -109,16 +131,13 @@ class Apt(object):
         gpg.extend(args)
         self.chroot.cmd(gpg)
 
-    def prep_apt_gpgkeys(self, sources):
+    def prep_apt(self):
         """Import and gpg keys, install any -keyring packages that are
-        required to authenticate apt sources.
-        
-        Arguments:
-        sources - a dict structure containing repoistory data"""
+        required to authenticate apt sources. Update and refresh apt cache."""
         gpgkeys = list()
         keyrings = list()
 
-        for name, source in sources.items():
+        for name, source in self.sources.items():
             gpgkey = source.get('gpgkey')
             if gpgkey:
                 gpgkeys.append(gpgkey)
@@ -154,9 +173,34 @@ class Apt(object):
             self._gpg(fetch_keys)
 
         if keyrings:
-            self.chroot.cmd('apt-get update')
-            cmd = 'apt-get --allow-unauthenticated --yes install'.split()
-            cmd.extend(keyrings)
-            self.chroot.cmd(cmd)
+            self.update()
+            self.install(keyrings)
+        else:
+            self.update()
 
-        self.chroot.cmd('apt-get update')
+    def _commit(self):
+        self.cache.commit()
+        self.cache.open(progress=apt.progress.base.OpProgress())
+
+    def update(self):
+        self.cache.update()
+        self.cache.open(progress=apt.progress.base.OpProgress())
+
+    def install(self, packages):
+        #with self.cache.actiongroup(): # segfaults
+        for p in packages:
+            self.cache[p].mark_install()
+        self._commit()
+
+    def remove(self, packages):
+        #with self.cache.actiongroup(): # segfaults
+        for p in packages:
+            self.cache[p].mark_delete(purge=True)
+        self._commit()
+
+    def installed(self):
+        for p in sorted(self.cache.keys()):
+            if self.cache[p].is_installed:
+                yield self.cache[p]
+        #return [self.cache[p] for p in sorted(self.cache.keys())
+        #        if self.cache[p].is_installed]
