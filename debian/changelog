@@ -1,9 +1,5 @@
-python-fll (0.1.1) UNRELEASED; urgency=low
+python-fll (0.1.1) unstable; urgency=low
 
-  [ Stefan Lippers-Hollmann ]
-  * NOT RELEASED YET
-
-  [ Niall Walsh ]
   * Switch from kde-minimal to kde-plasma-* to drive kde-l10n.
 
  -- Niall Walsh <niallwalsh@users.berlios.de>  Wed, 05 May 2010 16:53:19 +0100
