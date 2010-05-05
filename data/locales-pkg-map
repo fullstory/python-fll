@@ -12,7 +12,9 @@ iceowl = iceowl-l10n,
 
 iceweasel = iceweasel-l10n,
 
-kde-minimal = kde-l10n,
+kde-plasma-desktop = kde-l10n,
+
+kde-plasma-netbook = kde-l10n,
 
 koffice = koffice-l10n,
 
