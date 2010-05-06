@@ -6,7 +6,11 @@ python-fll (0.1.1) unstable; urgency=low
   [ Kel Modderman ]
   * Fix test suite for upload.
 
- -- Kel Modderman <kel@otaku42.de>  Thu, 06 May 2010 16:23:56 +1000
+  [ Stefan Lippers-Hollmann ]
+  * add myself to Uploaders.
+  * add python-apt to build-dependencies, required for the test suite.
+
+ -- Stefan Lippers-Hollmann <s.l-h@gmx.de>  Thu, 06 May 2010 13:19:20 +0200
 
 python-fll (0.1.0) unstable; urgency=low
 

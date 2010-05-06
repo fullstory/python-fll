@@ -3,6 +3,7 @@ Section: python
 Priority: optional
 Build-Depends: debhelper (>= 7),
  python-all (>= 2.5),
+ python-apt,
  python-central (>= 0.6.8),
  python-nose,
  python-configobj,
@@ -13,6 +14,7 @@ Build-Depends: debhelper (>= 7),
  docbook-xsl,
  libxml2-utils
 Maintainer: Kel Modderman <kel@otaku42.de>
+Uploaders: Stefan Lippers-Hollmann <s.l-h@gmx.de>
 XS-Python-Version: >=2.5
 Standards-Version: 3.8.4
 
