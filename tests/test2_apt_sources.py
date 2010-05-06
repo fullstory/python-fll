@@ -3,19 +3,18 @@ import os
 import sys
 
 from configobj import ConfigObj
-from fll.apt import Apt, AptError
+from fll.aptlib import AptLib, AptLibError
 from fll.chroot import Chroot, ChrootError
 
 class TestAptSources(object):
     def setUp(self):
         os.makedirs('tests/root/etc/apt/sources.list.d/')
         self.chroot = Chroot('tests/root')
-        self.apt = Apt(self.chroot)
+        sources = ConfigObj("tests/test2_apt_sources.conf")
+        self.apt = AptLib(self.chroot, sources)
 
     def test1_create_lists(self):
-        sources = ConfigObj("tests/test2_apt_sources.test1.conf")
-        self.apt.prep_apt_sources(sources)
-        
+        self.apt.prep_apt_sources()
         path = self.chroot.chroot_path('/etc/apt/sources.list.d/*.list')
         lists = glob.glob(path)
         assert len(lists) == 4

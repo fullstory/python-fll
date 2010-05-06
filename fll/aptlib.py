@@ -42,7 +42,8 @@ class AptLib(object):
 
         apt_pkg.init()
         # required for working on a chroot of differing architecture to host
-        apt_pkg.config.set('APT::Architecture', self.chroot.arch)
+        if self.chroot.arch:
+            apt_pkg.config.set('APT::Architecture', self.chroot.arch)
         # dpkg executed within chroot
         apt_pkg.config.set('Dpkg::Chroot-Directory', self.chroot.path)
         # dpkg executed on host, using chroot admindir + instdir

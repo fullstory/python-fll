@@ -1,46 +1,12 @@
 python-fll (0.1.1) unstable; urgency=low
 
+  [ Niall Walsh ]
   * Switch from kde-minimal to kde-plasma-* to drive kde-l10n.
 
-running build_scripts
-creating build/scripts-2.5
-copying and adjusting fll_detect_loc_pkgs -> build/scripts-2.5
-changing mode of build/scripts-2.5/fll_detect_loc_pkgs from 644 to 755
-touch build-python-2.5
-* Creating fll_detect_loc_pkgs.1 ...
-a2x -f manpage fll_detect_loc_pkgs.1.txt
-touch build-man-fll_detect_loc_pkgs.1
-make[1]: Leaving directory `/tmp/buildd/python-fll-0.1.1'
-   dh_auto_test
-make[1]: Entering directory `/tmp/buildd/python-fll-0.1.1'
-nosetests -s -v
-test1_config_validate.TestConfig.test1_config_validate ... ok
-test1_config_validate.TestConfig.test2_config_invalid ... ok
-Failure: ImportError (No module named apt) ... ERROR
+  [ Kel Modderman ]
+  * Fix test suite for upload.
 
-======================================================================
-ERROR: Failure: ImportError (No module named apt)
-----------------------------------------------------------------------
-Traceback (most recent call last):
-  File "/usr/lib/pymodules/python2.5/nose/loader.py", line 379, in loadTestsFromName
-    addr.filename, addr.module)
-  File "/usr/lib/pymodules/python2.5/nose/importer.py", line 39, in importFromPath
-    return self.importFromDir(dir_path, fqname)
-  File "/usr/lib/pymodules/python2.5/nose/importer.py", line 86, in importFromDir
-    mod = load_module(part_fqname, fh, filename, desc)
-  File "/tmp/buildd/python-fll-0.1.1/tests/test2_apt_sources.py", line 6, in <module>
-    from fll.apt import Apt, AptError
-ImportError: No module named apt
-
-----------------------------------------------------------------------
-Ran 3 tests in 1.208s
-
-FAILED (errors=1)
-make[1]: *** [test] Error 1
-make[1]: Leaving directory `/tmp/buildd/python-fll-0.1.1'
-dh_auto_test: make -j1 test returned exit code 2
-
- -- Niall Walsh <niallwalsh@users.berlios.de>  Wed, 05 May 2010 16:53:19 +0100
+ -- Kel Modderman <kel@otaku42.de>  Thu, 06 May 2010 16:23:56 +1000
 
 python-fll (0.1.0) unstable; urgency=low
 

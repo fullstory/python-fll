@@ -43,7 +43,7 @@ class Chroot(object):
                '/usr/sbin/update-grub', '/usr/sbin/update-initramfs',
                '/sbin/initctl', '/sbin/start-stop-daemon']
 
-    def __init__(self, path, arch, hostname='chroot', preserve=False):
+    def __init__(self, path, arch=None, hostname='chroot', preserve=False):
         self.path = os.path.realpath(path)
         self.arch = arch
         self.hostname = hostname
