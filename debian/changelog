@@ -1,8 +1,9 @@
-python-fll (0.1.2) UNRELEASED; urgency=low
+python-fll (0.1.2) unstable; urgency=low
 
-  * NOT RELEASED YET
+  * rebuild for python1.6 as default python version in Debian.
+  * switch from python-central to python-support.
 
- -- Stefan Lippers-Hollmann <s.l-h@gmx.de>  Thu, 06 May 2010 13:24:06 +0200
+ -- Stefan Lippers-Hollmann <s.l-h@gmx.de>  Fri, 18 Jun 2010 13:35:50 +0200
 
 python-fll (0.1.1) unstable; urgency=low
 
