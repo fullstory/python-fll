@@ -1,8 +1,8 @@
-python-fll (0.1.5) UNRELEASED; urgency=low
+python-fll (0.2.0) unstable; urgency=low
 
-  * NOT RELEASED YET
+  * switch to aptosid.
 
- -- Stefan Lippers-Hollmann <s.l-h@gmx.de>  Sun, 08 Aug 2010 04:51:38 +0200
+ -- Stefan Lippers-Hollmann <s.l-h@gmx.de>  Sun, 29 Aug 2010 20:53:48 +0200
 
 python-fll (0.1.4) unstable; urgency=low
 

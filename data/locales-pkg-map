@@ -1,5 +1,7 @@
 aspell-en = aspell,
 
+aptosid-manual-en = aptosid-manual,
+
 gcompris = gcompris-sound,
 
 gimp = gimp-help,
@@ -21,7 +23,5 @@ koffice = koffice-l10n,
 myspell-en-us = myspell,
 
 openoffice.org-core = openoffice.org-help, openoffice.org-l10n, openoffice.org-thesaurus, openoffice.org-hyphenation,
-
-sidux-manual-en = sidux-manual,
 
 sylpheed = sylpheed-i18n,
