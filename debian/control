@@ -2,7 +2,7 @@ Source: python-fll
 Section: python
 Priority: optional
 Build-Depends: debhelper (>= 7),
- python-all (>= 2.5),
+ python-all (>= 2.6),
  python-apt,
  python-support (>= 0.5.3),
  python-nose,
