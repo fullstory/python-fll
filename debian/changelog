@@ -1,8 +1,10 @@
 python-fll (0.1.3) unstable; urgency=low
 
   * bump standards version to 3.9.1, no changes necessary.
+  * stop building modules for python-2.5, as doing so would require to add
+    python-2.5 to build-depends.
 
- -- Stefan Lippers-Hollmann <s.l-h@gmx.de>  Tue, 03 Aug 2010 23:28:29 +0200
+ -- Stefan Lippers-Hollmann <s.l-h@gmx.de>  Tue, 03 Aug 2010 23:48:35 +0200
 
 python-fll (0.1.2) unstable; urgency=low
 
