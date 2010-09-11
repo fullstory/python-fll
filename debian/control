@@ -29,3 +29,9 @@ XB-Python-Version: ${python:Versions}
 Description: common infrastructure for the FULLSTORY live Debian media project
  python-fll is a group of modules used by a variety of fll scripts, which are
  used by the FULLSTORY live Debian media build, boot and utility programs.
+ .
+ Provided functionality covers, among others, modules for these actions:
+  * mapping i18n/ l10n packages to trigger packages
+  * support for bootstraping environments and chroots
+  * python-apt integration in chroot environments
+  * execute subprocesses with SIGPIPE restored
