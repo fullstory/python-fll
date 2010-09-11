@@ -1,7 +1,7 @@
 Source: python-fll
 Section: python
 Priority: optional
-Build-Depends: debhelper (>= 7),
+Build-Depends: debhelper (>= 7.9.3),
  python-all (>= 2.6),
  python-apt,
  python-support (>= 0.5.3),
