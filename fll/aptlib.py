@@ -7,12 +7,10 @@ Copyright: Copyright (C) 2010 Kel Modderman <kel@otaku42.de>
 License:   GPL-2
 """
 
-from __future__ import with_statement
 from contextlib import nested
 
 import subprocess
 import apt.cache
-import apt.progress
 import apt.package
 import apt_pkg
 import os
@@ -34,31 +32,24 @@ class AptLib(object):
     Arguments:
     chroot - (str) an fll.chroot.Chroot object
     """
-    def __init__(self, chroot, sources, cached_uris=False, src_uris=False):
+    def __init__(self, chroot, sources, **kwargs):
         self.chroot = chroot
         self.sources = sources
 
-        self.prep_apt_sources(cached_uris=cached_uris, src_uris=src_uris)
+        self.prep_apt_sources(**kwargs)
 
         apt_pkg.init()
         # required for working on a chroot of differing architecture to host
-        if self.chroot.arch:
-            apt_pkg.config.set('APT::Architecture', self.chroot.arch)
+        apt_pkg.config.set('APT::Architecture', self.chroot.arch)
         # dpkg executed within chroot
         apt_pkg.config.set('Dpkg::Chroot-Directory', self.chroot.path)
-        # dpkg executed on host, using chroot admindir + instdir
-        #apt_pkg.config.set('Dpkg::Options::', '--root=%s' % self.chroot.path)
 
-        self.cache = self.prep_cache()
-
-    def prep_cache(self):
-        cache = apt.cache.Cache(progress=apt.progress.base.OpProgress(),
-                                rootdir=self.chroot.path)
+        self.cache = apt.cache.Cache(rootdir=self.chroot.path)
 
         # Avoid apt-listchanges / dpkg-preconfigure
         apt_pkg.Config.clear("DPkg::Pre-Install-Pkgs")
 
-        return cache
+        self.prep_apt_gpgkeys()
 
     def prep_apt_sources(self, cached_uris=False, src_uris=False):
         """Write apt sources to file(s) in /etc/apt/sources.list.d/*.list.
@@ -132,7 +123,7 @@ class AptLib(object):
         gpg.extend(args)
         self.chroot.cmd(gpg)
 
-    def prep_apt(self):
+    def prep_apt_gpgkeys(self):
         """Import and gpg keys, install any -keyring packages that are
         required to authenticate apt sources. Update and refresh apt cache."""
         gpgkeys = list()
@@ -165,6 +156,7 @@ class AptLib(object):
 
         if recv_keys:
             recv_keys.insert(0, '--keyserver')
+            # Selection of keyserver should probably be configurable
             recv_keys.insert(1, 'wwwkeys.eu.pgp.net')
             recv_keys.insert(2, '--recv-keys')
             self._gpg(recv_keys)
@@ -180,12 +172,18 @@ class AptLib(object):
             self.update()
 
     def _commit(self):
+        self.chroot.mountvirtfs()
         self.cache.commit()
-        self.cache.open(progress=apt.progress.base.OpProgress())
+        self.chroot.umountvirtfs()
+        self.cache.open()
 
     def update(self):
         self.cache.update()
-        self.cache.open(progress=apt.progress.base.OpProgress())
+        self.cache.open()
+
+    def dist_upgrade(self):
+        self.cache.upgrade(dist_upgrade=True)
+        self._commit()
 
     def install(self, packages):
         #with self.cache.actiongroup(): # segfaults
@@ -203,5 +201,3 @@ class AptLib(object):
         for p in sorted(self.cache.keys()):
             if self.cache[p].is_installed:
                 yield self.cache[p]
-        #return [self.cache[p] for p in sorted(self.cache.keys())
-        #        if self.cache[p].is_installed]

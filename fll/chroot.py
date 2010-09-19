@@ -7,8 +7,6 @@ Copyright: Copyright (C) 2010 Kel Modderman <kel@otaku42.de>
 License:   GPL-2
 """
 
-from __future__ import with_statement
-
 import fll.misc
 import os
 import subprocess
@@ -43,7 +41,7 @@ class Chroot(object):
                '/usr/sbin/update-grub', '/usr/sbin/update-initramfs',
                '/sbin/initctl', '/sbin/start-stop-daemon']
 
-    def __init__(self, path, arch=None, hostname='chroot', preserve=False):
+    def __init__(self, path, arch, hostname='chroot', preserve=False):
         self.path = os.path.realpath(path)
         self.arch = arch
         self.hostname = hostname
@@ -75,6 +73,8 @@ class Chroot(object):
 
         if arch:
             cmd.append('--arch=' + arch)
+        else:
+            cmd.append('--arch=' + self.arch)
         if include:
             cmd.append('--include=' + (',').join(include))
         if exclude:
@@ -262,8 +262,8 @@ ff02::3 ip6-allhosts""" % self.hostname
         try:
             if pipe:
                 proc = subprocess.Popen(cmd, preexec_fn=self._chroot, cwd='/',
-                                    stdout=subprocess.PIPE,
-                                    stderr=subprocess.PIPE)
+                                        stdout=subprocess.PIPE,
+                                        stderr=subprocess.PIPE)
             else:
                 proc = subprocess.Popen(cmd, preexec_fn=self._chroot, cwd='/')
             proc.wait()
