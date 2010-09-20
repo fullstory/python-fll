@@ -1,3 +1,42 @@
+python-fll (0.2.2) UNRELEASED; urgency=low
+
+  * NOT RELEASED YET
+running build_scripts
+creating build/scripts-2.6
+copying and adjusting fll_detect_loc_pkgs -> build/scripts-2.6
+changing mode of build/scripts-2.6/fll_detect_loc_pkgs from 644 to 755
+touch build-python-2.6
+* Creating fll_detect_loc_pkgs.1 ...
+a2x -f manpage fll_detect_loc_pkgs.1.txt
+touch build-man-fll_detect_loc_pkgs.1
+make[1]: Leaving directory `/tmp/buildd/python-fll-0.2.1'
+   dh_auto_test
+make[1]: Entering directory `/tmp/buildd/python-fll-0.2.1'
+nosetests -s -v
+test1_config_validate.TestConfig.test1_config_validate ... ok
+test1_config_validate.TestConfig.test2_config_invalid ... ok
+test2_apt_sources.TestAptSources.test1_create_lists ... ERROR
+
+======================================================================
+ERROR: test2_apt_sources.TestAptSources.test1_create_lists
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/usr/lib/pymodules/python2.6/nose/case.py", line 364, in setUp
+    try_run(self.inst, ('setup', 'setUp'))
+  File "/usr/lib/pymodules/python2.6/nose/util.py", line 487, in try_run
+    return func()
+  File "/tmp/buildd/python-fll-0.2.1/tests/test2_apt_sources.py", line 12, in setUp
+    self.chroot = Chroot('tests/root')
+TypeError: __init__() takes at least 3 arguments (2 given)
+
+----------------------------------------------------------------------
+Ran 3 tests in 0.050s
+
+FAILED (errors=1)
+make[1]: *** [test] Error 1
+
+ -- Stefan Lippers-Hollmann <s.l-h@gmx.de>  Mon, 20 Sep 2010 14:16:42 +0200
+
 python-fll (0.2.1) unstable; urgency=low
 
   * Update for python2.6. Add a dist_upgrade method to aptlib.
