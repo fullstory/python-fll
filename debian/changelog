@@ -1,9 +1,12 @@
-python-fll (0.2.1) UNRELEASED; urgency=low
+python-fll (0.2.2) unstable; urgency=low
 
-  [ Stefan Lippers-Hollmann ]
-  * NOT RELEASED YET
+  * drop obsolete test2_apt_sources.
 
-  [ Kel Modderman ]
+ -- Stefan Lippers-Hollmann <s.l-h@gmx.de>  Mon, 20 Sep 2010 22:35:01 +0200
+
+python-fll (0.2.1) unstable; urgency=low
+
+  * Update for python2.6. Add a dist_upgrade method to aptlib.
   * Add k3b mappting to data/locales-pkg-map.
 
  -- Kel Modderman <kel@otaku42.de>  Sun, 19 Sep 2010 10:21:03 +1000
