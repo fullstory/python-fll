@@ -1,9 +1,6 @@
-python-fll (0.2.1) UNRELEASED; urgency=low
+python-fll (0.2.1) unstable; urgency=low
 
-  [ Stefan Lippers-Hollmann ]
-  * NOT RELEASED YET
-
-  [ Kel Modderman ]
+  * Update for python2.6. Add a dist_upgrade method to aptlib.
   * Add k3b mappting to data/locales-pkg-map.
 
  -- Kel Modderman <kel@otaku42.de>  Sun, 19 Sep 2010 10:21:03 +1000
