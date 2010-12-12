@@ -9,12 +9,14 @@ License:   GPL-2
 
 from contextlib import nested
 
-import subprocess
 import apt.cache
 import apt.package
 import apt_pkg
+import datetime
 import os
 import shutil
+import subprocess
+import sys
 import tempfile
 
 
@@ -173,12 +175,12 @@ class AptLib(object):
 
     def _commit(self):
         self.chroot.mountvirtfs()
-        self.cache.commit()
+        self.cache.commit(fetch_progress=AptLibProgress())
         self.chroot.umountvirtfs()
         self.cache.open()
 
     def update(self):
-        self.cache.update()
+        self.cache.update(fetch_progress=AptLibProgress())
         self.cache.open()
 
     def dist_upgrade(self):
@@ -201,3 +203,49 @@ class AptLib(object):
         for p in sorted(self.cache.keys()):
             if self.cache[p].is_installed:
                 yield self.cache[p]
+
+
+class AptLibProgress(apt.progress.base.AcquireProgress):
+    """Progress report for apt."""
+    _time = None
+
+    def _write(self, line):
+        sys.stdout.write(line)
+        sys.stdout.write("\n")
+        sys.stdout.flush()
+
+    def fail(self, item):
+        if item.owner.status == item.owner.STAT_DONE:
+            line = 'IGN ' + item.description
+        else:
+            line = 'ERR %s [%s]' % (item.description, item.owner.error_text)
+        self._write(line)
+
+    def ims_hit(self, item):
+        line = 'HIT ' + item.description
+        if item.owner.filesize:
+            line += ' [%sB]' % apt_pkg.size_to_str(item.owner.filesize)
+        self._write(line)
+
+    def fetch(self, item):
+        line = 'GET ' + item.description
+        if item.owner.filesize:
+            line += ' [%sB]' % apt_pkg.size_to_str(item.owner.filesize)
+        self._write(line)
+
+    def start(self):
+        self._time = datetime.datetime.utcnow()
+
+    def stop(self):
+        duration = datetime.datetime.utcnow() - self._time
+
+        if self.total_items == 0:
+            return
+
+        line = 'GOT %s items' % self.total_items
+        if duration.seconds >= 60:
+            line += ' in %dm:%02ds' % divmod(duration.seconds, 60)
+        else:
+            line += ' in %d.%ds' % (duration.seconds, duration.microseconds)
+        line += ' [%sB]' % apt_pkg.size_to_str(self.total_bytes)
+        self._write(line)
