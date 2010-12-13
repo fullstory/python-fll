@@ -182,7 +182,7 @@ class AptLib(object):
         for p in packages:
             self.cache[p].mark_install()
 
-        print 'INSTALL %d packages NEED to get %sB SPACE required %sB' % \
+        print 'INSTALL %d packages - %sB download - %sB required' % \
             (self.cache.install_count,
              apt_pkg.size_to_str(self.cache.required_download),
              apt_pkg.size_to_str(self.cache.required_space))
