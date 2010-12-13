@@ -163,10 +163,6 @@ class AptLib(object):
             self.install(keyrings)
 
     def commit(self):
-        print 'WANT %d packages NEED to get %sB SPACE required %sB' % \
-            (self.cache.install_count,
-             apt_pkg.size_to_str(self.cache.required_download),
-             apt_pkg.size_to_str(self.cache.required_space))
         self.chroot.mountvirtfs()
         self.cache.commit(fetch_progress=AptLibProgress())
         self.chroot.umountvirtfs()
@@ -185,6 +181,12 @@ class AptLib(object):
         #with self.cache.actiongroup(): # segfaults
         for p in packages:
             self.cache[p].mark_install()
+
+        print 'INSTALL %d packages NEED to get %sB SPACE required %sB' % \
+            (self.cache.install_count,
+             apt_pkg.size_to_str(self.cache.required_download),
+             apt_pkg.size_to_str(self.cache.required_space))
+
         if commit:
             self.commit()
 
