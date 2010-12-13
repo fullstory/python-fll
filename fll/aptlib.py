@@ -174,6 +174,13 @@ class AptLib(object):
 
     def dist_upgrade(self, commit=True):
         self.cache.upgrade(dist_upgrade=True)
+
+        print 'INSTALL %d packages - DELETE %d packages - %sB download - %sB required' % \
+            (self.cache.install_count,
+             self.cache.delete_count,
+             apt_pkg.size_to_str(self.cache.required_download),
+             apt_pkg.size_to_str(self.cache.required_space))
+
         if commit:
             self.commit()
 
