@@ -120,7 +120,8 @@ class Chroot(object):
             os.unlink(self.chroot_path(fname))
             shutil.copy(fname, self.chroot_path(fname))
 
-        for fname in ('/etc/fstab', '/etc/hostname'):
+        for fname in ('/etc/fstab', '/etc/hostname',
+                      '/etc/network/interfaces'):
             self.create_file(fname)
 
         for fname in self.diverts:
@@ -132,7 +133,7 @@ class Chroot(object):
         debconf = ['man-db man-db/auto-update boolean false']
         self.debconf_set_selections(debconf)
 
-    def undo_prep_chroot(self):
+    def undo_chroot(self):
         """Undo any changes in the chroot which should be undone. Make any
         final configurations."""
         for fname in ('/etc/hosts', '/etc/resolv.conf'):
@@ -195,6 +196,11 @@ ff00::0 ip6-mcastprefix
 ff02::1 ip6-allnodes
 ff02::2 ip6-allrouters
 ff02::3 ip6-allhosts""" % self.hostname
+
+            elif filename == '/etc/network/interfaces':
+                print >>fh, """\
+auto lo
+iface lo inet loopback"""
 
         except IOError:
             raise ChrootError('failed to write: ' + filename)
@@ -262,8 +268,7 @@ ff02::3 ip6-allhosts""" % self.hostname
         try:
             if pipe:
                 proc = subprocess.Popen(cmd, preexec_fn=self._chroot, cwd='/',
-                                        stdout=subprocess.PIPE,
-                                        stderr=subprocess.PIPE)
+                                        stdout=subprocess.PIPE)
             else:
                 proc = subprocess.Popen(cmd, preexec_fn=self._chroot, cwd='/')
             proc.wait()
