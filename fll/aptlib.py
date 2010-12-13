@@ -34,48 +34,45 @@ class AptLib(object):
     Arguments:
     chroot - (str) an fll.chroot.Chroot object
     """
-    def __init__(self, chroot, sources, **kwargs):
+    def __init__(self, chroot):
         self.chroot = chroot
-        self.sources = sources
+        self.cache = None
 
-        self.prep_apt_sources(**kwargs)
-
-        apt_pkg.init()
-        # required for working on a chroot of differing architecture to host
-        apt_pkg.config.set('APT::Architecture', self.chroot.arch)
-        # dpkg executed within chroot
-        apt_pkg.config.set('Dpkg::Chroot-Directory', self.chroot.path)
-
+    def init(self, preferences={}):
+        """Initialise apt in the chroot."""
         self.cache = apt.cache.Cache(rootdir=self.chroot.path)
+
+        # Set user configurable preferences.
+        for pref in preferences:
+            apt_pkg.config.set(pref, preferences[pref])
+
+        # Must explicitly set architecture for interacting with chroot of
+        # differing architecture to host. Chroot before invoking dpkg.
+        apt_pkg.config.set('APT::Architecture', self.chroot.arch)
+        apt_pkg.config.set('Dpkg::Chroot-Directory', self.chroot.path)
 
         # Avoid apt-listchanges / dpkg-preconfigure
         apt_pkg.Config.clear("DPkg::Pre-Install-Pkgs")
 
-        self.prep_apt_gpgkeys()
-
-    def prep_apt_sources(self, cached_uris=False, src_uris=False):
+    def sources_list(self, sources, cached_uris=False, src_uris=False):
         """Write apt sources to file(s) in /etc/apt/sources.list.d/*.list.
         Create /etc/apt/sources.list with some boilerplate text about
         the lists in /etc/apt/sources.list.d/."""
         def write_sources_list_comment(filename, lines, mode='w'):
-            fh = None
             try:
-                fh = open(filename, mode)
-                if mode == 'a':
-                    fh.write('\n')
-                for n in range(30):
-                    fh.write('# ')
-                fh.write('#\n')
-                for line in lines:
-                    fh.write('# %-58s#\n' % line)
-                for n in range(30):
-                    fh.write('# ')
-                fh.write('#\n')
+                with open(filename, mode) as fh:
+                    if mode == 'a':
+                        print >>fh, '\n'
+                    for n in range(30):
+                        print >>fh, '# '
+                    print >>fh, '#\n'
+                    for line in lines:
+                        print >>fh, '# %-58s#\n' % line
+                    for n in range(30):
+                        print >>fh, '# '
+                    print >>fh, '#\n'
             except IOError, e:
                 raise AptLibError('failed to modify sources.list: ' + e)
-            finally:
-                if fh:
-                    fh.close()
 
         sources_list = self.chroot.chroot_path('/etc/apt/sources.list')
         lines = ['Please use /etc/apt/sources.list.d/ instead of this file',
@@ -87,7 +84,7 @@ class AptLib(object):
                  'managed via the apt-cdrom utility.']
         write_sources_list_comment(sources_list, lines)
 
-        for name, source in self.sources.items():
+        for name, source in sources.items():
             description = source.get('description')
             uri = source.get('uri')
             cached_uri = source.get('cached_uri')
@@ -105,19 +102,16 @@ class AptLib(object):
                 else:
                     line = '%s %s %s' % (uri, suite, components)
                 
-                fh = None
                 try:
-                    fh = open(self.chroot.chroot_path(fname), 'a')
-                    print >>fh, 'deb ' + line
-                    if src_uris:
-                        print >>fh, 'deb-src ' + line
+                    with open(self.chroot.chroot_path(fname), 'a') as fh:
+                        print >>fh, 'deb ' + line
+                        if src_uris:
+                            print >>fh, 'deb-src ' + line
                 except IOError, e:
                     raise AptLibError('failed to write %s: %s' % (fname, e))
-                finally:
-                    if fh:
-                        fh.close()
 
     def _gpg(self, args):
+        """Fetch gpg public keys and save to apt's trusted keyring."""
         gpg = ['gpg', '--batch', '--no-options', '--no-default-keyring',
                '--secret-keyring', '/etc/apt/secring.gpg',
                '--trustdb-name', '/etc/apt/trustdb.gpg',
@@ -125,13 +119,13 @@ class AptLib(object):
         gpg.extend(args)
         self.chroot.cmd(gpg)
 
-    def prep_apt_gpgkeys(self):
+    def key(self, sources, keyserver='wwwkeys.eu.pgp.net'):
         """Import and gpg keys, install any -keyring packages that are
         required to authenticate apt sources. Update and refresh apt cache."""
         gpgkeys = list()
         keyrings = list()
 
-        for name, source in self.sources.items():
+        for name, source in sources.items():
             gpgkey = source.get('gpgkey')
             if gpgkey:
                 gpgkeys.append(gpgkey)
@@ -158,8 +152,7 @@ class AptLib(object):
 
         if recv_keys:
             recv_keys.insert(0, '--keyserver')
-            # Selection of keyserver should probably be configurable
-            recv_keys.insert(1, 'wwwkeys.eu.pgp.net')
+            recv_keys.insert(1, keyserver)
             recv_keys.insert(2, '--recv-keys')
             self._gpg(recv_keys)
 
@@ -168,12 +161,9 @@ class AptLib(object):
             self._gpg(fetch_keys)
 
         if keyrings:
-            self.update()
             self.install(keyrings)
-        else:
-            self.update()
 
-    def _commit(self):
+    def commit(self):
         self.chroot.mountvirtfs()
         self.cache.commit(fetch_progress=AptLibProgress())
         self.chroot.umountvirtfs()
@@ -183,21 +173,24 @@ class AptLib(object):
         self.cache.update(fetch_progress=AptLibProgress())
         self.cache.open()
 
-    def dist_upgrade(self):
+    def dist_upgrade(self, commit=True):
         self.cache.upgrade(dist_upgrade=True)
-        self._commit()
+        if commit:
+            self.commit()
 
-    def install(self, packages):
+    def install(self, packages, commit=True):
         #with self.cache.actiongroup(): # segfaults
         for p in packages:
             self.cache[p].mark_install()
-        self._commit()
+        if commit:
+            self.commit()
 
-    def remove(self, packages):
+    def purge(self, packages, commit=True):
         #with self.cache.actiongroup(): # segfaults
         for p in packages:
             self.cache[p].mark_delete(purge=True)
-        self._commit()
+        if commit:
+            self.commit()
 
     def installed(self):
         for p in sorted(self.cache.keys()):
