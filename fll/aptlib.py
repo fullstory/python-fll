@@ -16,7 +16,6 @@ import datetime
 import os
 import shutil
 import subprocess
-import sys
 import tempfile
 
 
@@ -164,6 +163,10 @@ class AptLib(object):
             self.install(keyrings)
 
     def commit(self):
+        print 'WANT %d packages NEED to get %sB SPACE required %sB' % \
+            (self.cache.install_count,
+             apt_pkg.size_to_str(self.cache.required_download),
+             apt_pkg.size_to_str(self.cache.required_space))
         self.chroot.mountvirtfs()
         self.cache.commit(fetch_progress=AptLibProgress())
         self.chroot.umountvirtfs()
@@ -202,29 +205,24 @@ class AptLibProgress(apt.progress.base.AcquireProgress):
     """Progress report for apt."""
     _time = None
 
-    def _write(self, line):
-        sys.stdout.write(line)
-        sys.stdout.write("\n")
-        sys.stdout.flush()
-
     def fail(self, item):
         if item.owner.status == item.owner.STAT_DONE:
             line = 'IGN ' + item.description
         else:
             line = 'ERR %s [%s]' % (item.description, item.owner.error_text)
-        self._write(line)
+        print line
 
     def ims_hit(self, item):
         line = 'HIT ' + item.description
         if item.owner.filesize:
             line += ' [%sB]' % apt_pkg.size_to_str(item.owner.filesize)
-        self._write(line)
+        print line
 
     def fetch(self, item):
         line = 'GET ' + item.description
         if item.owner.filesize:
             line += ' [%sB]' % apt_pkg.size_to_str(item.owner.filesize)
-        self._write(line)
+        print line
 
     def start(self):
         self._time = datetime.datetime.utcnow()
@@ -241,4 +239,4 @@ class AptLibProgress(apt.progress.base.AcquireProgress):
         else:
             line += ' in %d.%ds' % (duration.seconds, duration.microseconds)
         line += ' [%sB]' % apt_pkg.size_to_str(self.total_bytes)
-        self._write(line)
+        print line
