@@ -113,14 +113,12 @@ class build_manpage(Command):
             line = line.replace('[', ' [ ')
             line = line.replace(']', ' ] ')
             for word in line.split():
-                if word == '[':
-                    fh.write('\n.RB " %s" ' % word)
-                elif word == ']':
-                    fh.write(' "%s " ' % word)
-                elif word.startswith('<'):
-                    fh.write(' " " \\fI%s\\fR ' % word)
+                if word == '[' or word == ']':
+                    fh.write('\n%s' % word)
+                elif word.startswith('-'):
+                    fh.write('\n.BI %s' % markup(word))
                 else:
-                    fh.write(markup(word))
+                    fh.write(' " %s " ' % markup(word))
         fh.write('\n')
 
         fh.write('.SH OPTIONS\n')
