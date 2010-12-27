@@ -5,7 +5,6 @@ from distutils.command.clean import clean
 from distutils.core import setup, Command
 from distutils.errors import DistutilsOptionError
 import datetime
-import optparse
 import os
 
 
@@ -60,8 +59,6 @@ class build_manpage(Command):
 
         mod = __import__(self.module, fromlist=self.module.split('.'))
         self.parser = getattr(mod, self.function)()
-        self.parser.formatter = ManPageFormatter()
-        self.parser.formatter.set_parser(self.parser)
 
     def run(self):
         def markup(txt):
@@ -71,30 +68,88 @@ class build_manpage(Command):
         email = self.distribution.get_author_email()
         homepage = self.distribution.get_url()
         today = datetime.date.today().strftime('%Y-%m-%d')
+        command = self.output.split('.')[0]
+        section = self.output.split('.')[-1]
+
+        help = self.parser.format_help().splitlines()
+        usage = self.parser.format_usage().splitlines()
+
+        desc_start = len(usage) + 1
+        desc_end = opts_start = 0
+        for n, line in enumerate(help):
+            if line.startswith('positional arguments:') or \
+               line.startswith('optional arguments:'):
+                desc_end = n - 1
+                opts_start = n
+        desc = help[desc_start:desc_end]
+        opts = help[opts_start:]
 
         fh = open(self.output, 'w')
 
-        app = self.parser.get_prog_name()
-        section = self.output.split('.')[-1]
-        fh.write(markup('.TH %s %s %s\n' % (app, section, today)))
+        fh.write(markup('.TH %s %s %s\n' % (command, section, today)))
 
-        desc = self.parser.get_description().splitlines()[0].rstrip('.')
+        short_desc = desc[0].rstrip('.')
         fh.write('.SH NAME\n')
-        fh.write(markup('%s - %s\n' % (app, desc)))
+        fh.write(markup('%s - %s\n' % (command, short_desc)))
 
-        long_desc = self.parser.get_description().splitlines()[2:]
+        long_desc = desc[2:]
         fh.write('.SH DESCRIPTION\n')
-        fh.writelines(['%s\n' % line for line in long_desc])
+        for line in long_desc:
+            line = line.strip()
+            if len(line) == 0:
+                line = '.PP'
+            if line.startswith('* '):
+                line = line.replace('* ', '.IP \\(bu\n')
+            fh.write('%s\n' % markup(line))
 
-        usage = self.parser.get_usage()
-        usage = usage.replace('%s ' % app, '')
         fh.write('.SH SYNOPSIS\n')
-        fh.write('.B %s\n' % markup(app))
-        fh.write(usage)
+        fh.write('.B %s' % markup(command))
+        for line in usage:
+            line = line.strip()
+            if line.startswith('usage:'):
+                line = line.replace('usage: ', '')
+            if line.startswith(command):
+                line = line.replace('%s ' % command, '')
+            line = line.replace('[', ' [ ')
+            line = line.replace(']', ' ] ')
+            for word in line.split():
+                if word == '[':
+                    fh.write('\n.RB " %s" ' % word)
+                elif word == ']':
+                    fh.write(' "%s " ' % word)
+                elif word.startswith('<'):
+                    fh.write(' " " \\fI%s\\fR ' % word)
+                else:
+                    fh.write(markup(word))
+        fh.write('\n')
 
-        options = self.parser.format_option_help()
         fh.write('.SH OPTIONS\n')
-        fh.write(options)
+        for line in opts:
+            line = line.strip()
+            if line.startswith('positional arguments:') or \
+               line.startswith('optional arguments:'):
+                line = line.rstrip(':')
+                line = line.upper()
+                fh.write('.SS %s\n' % line)
+            elif line.startswith('-'):
+                fh.write('.TP\n')
+                for part in line.split('  '):
+                    part = part.strip()
+                    part = part.replace(',', ' ", "')
+                    if part == '':
+                        continue
+                    elif part.startswith('-'):
+                        fh.write('.BR')
+                        for word in part.split():
+                            if word.startswith('<'):
+                                fh.write(' " " \\fI%s\\fR ' % markup(word))
+                            else:
+                                fh.write(' %s' % markup(word))
+                        fh.write('\n')
+                    else:
+                        fh.write('%s\n' % markup(part))
+            else:
+                fh.write('%s\n' % markup(line))
 
         if self.files:
             fh.write('.SH FILES\n')
@@ -108,75 +163,21 @@ class build_manpage(Command):
 
         if homepage and homepage != 'UNKNOWN':
             fh.write('.SH HOMEPAGE\n')
-            fh.write('The latest info about \\fB%s\\fR is at\n' % markup(app))
-            fh.write('.UR %s\n.UE\n' % markup(homepage))
+            fh.write('The latest info about \\fB%s\\fR is at\n' % markup(command))
+            fh.write('.UR %s\n.UE .\n' % markup(homepage))
 
         if author and author != 'UNKNOWN':
             fh.write('.SH AUTHORS\n')
             fh.write('%s\n' % markup(author))
 
             if email and email != 'UNKNOWN':
-                fh.write('.UR %s\n.UE\n' % markup(email))
+                fh.write('.UR %s\n.UE .\n' % markup(email))
 
             fh.write('.SH COPYRIGHT\n')
             fh.write('Copyright \(co %s %s.\n' %
                      (today.split('-')[0], markup(author)))
 
         fh.close()
-
-
-class ManPageFormatter(optparse.HelpFormatter):
-    def __init__(self, indent_increment=2, max_help_position=24, width=None,
-                 short_first=1):
-        optparse.HelpFormatter.__init__(self, indent_increment,
-                                        max_help_position, width, short_first)
-
-    def _markup(self, txt):
-        return txt.replace('-', '\\-')
-
-    def format_usage(self, usage):
-        usage = '.BI %s\n' % usage
-        usage = usage.replace('=', '= ')
-        usage = usage.replace('[', '\n[\\fI')
-        usage = usage.replace(']', '\\fR]')
-        return self._markup(usage)
-
-    def format_description(self, description):
-        result = []
-        for line in description.splitlines():
-            line = line.strip()
-            if len(line) == 0:
-                line = '.PP'
-            if line.startswith('* '):
-                line = line.replace('* ', '.IP \\(bu\n')
-            result.append('%s\n' % line)
-        return self._markup(''.join(result))
-
-    def format_heading(self, heading):
-        if self.level == 0:
-            return ''
-        return '.TP\n%s\n' % self._markup(heading.upper())
-
-    def format_option(self, option):
-        result = []
-        opt_str = self._markup(self.option_strings[option])
-        if opt_str.find(',') >= 0:
-            opt_s, opt_l = opt_str.split(',')
-            if opt_l.find('=') >= 0:
-                opt_l = opt_l.replace('=', '= ')
-                result.append('.TP\n.BI %s "\\fR,\\fB" " " %s\n' %
-                              (opt_s, opt_l))
-            else:
-                result.append('.TP\n.BI %s "" \\fR,\\fB " " %s\n' %
-                              (opt_s, opt_l))
-        else:
-            result.append('.TP\n.BI %s\n' % opt_str.replace('=', '= '))
-
-        if option.help:
-            help_text = '%s\n' % self.expand_default(option)
-            result.append(self._markup(help_text))
-
-        return ''.join(result)
 
 
 build.sub_commands.append(('build_manpage', None))

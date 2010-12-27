@@ -2,16 +2,17 @@ python-fll (0.9.0) UNRELEASED; urgency=low
 
   * Add fll shell wrapper and python program which uses the fll modules.
   * Add cmdline.py, main.py and config.py fll module skeletons.
+  * Switch to argparse module for option/argument parsing.
   * Remove Makefile, leave build system to setup.py.
   * Remove defunct test suite.
-  * Build manual page for fll build tool dynamically via custom optparse
-    help formatter and distutils build subcommand.
+  * Build manual page for fll build tool dynamically based on argparse
+    formatted help/usage output.
   * Clean up manual page with distutls clean subcommand.
   * Remove fll_detect_locale_pkgs and manpage, they are not used and
     fll.locales is pending overhaul.
   * Install a ConfigObj spec file for configuration validation.
 
- -- Kel Modderman <kel@otaku42.de>  Mon, 27 Dec 2010 14:17:57 +1000
+ -- Kel Modderman <kel@otaku42.de>  Mon, 27 Dec 2010 21:47:32 +1000
 
 python-fll (0.2.2) unstable; urgency=low
 

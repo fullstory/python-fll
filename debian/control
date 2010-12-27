@@ -5,6 +5,7 @@ Build-Depends: debhelper (>= 8),
  python-all (>= 2.6),
  python-apt,
  python-support (>= 0.5.3),
+ python-argparse,
  python-configobj
 Maintainer: Kel Modderman <kel@otaku42.de>
 Uploaders: Stefan Lippers-Hollmann <s.l-h@gmx.de>
@@ -16,6 +17,7 @@ Architecture: all
 Depends: ${misc:Depends},
  ${python:Depends},
  python-apt (>= 0.7.93),
+ python-argparse,
  python-configobj
 Provides: ${python:Provides}
 XB-Python-Version: ${python:Versions}

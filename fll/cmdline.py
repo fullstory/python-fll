@@ -7,13 +7,11 @@ Copyright: Copyright (C) 2010 Kel Modderman <kel@otaku42.de>
 License:   GPL-2
 """
 
-import optparse
+import argparse
 import os
 
 
 def cmdline():
-    usage='Usage: %prog --config=<CONF> [<OPTIONS>]'
-
     desc="""\
 Live GNU/Linux media building utility.
 
@@ -30,51 +28,44 @@ Features:
     * uses python-apt interface for package management
 """
 
-    p = optparse.OptionParser(usage=usage, description=desc, prog='fll')
+    p = argparse.ArgumentParser(description=desc, prog='fll',
+            formatter_class=argparse.RawDescriptionHelpFormatter)
 
-    p.add_option('-b', '--build-dir', dest='build_dir', action='store',
-                 type='string', metavar='<DIR>', default=os.getcwd(),
-                 help="""\
+    p.add_argument('--build-dir', '-b', default=os.getcwd(), metavar='<DIR>',
+                   help="""\
 Build directory for staging chroot(s), binary and source output. A large
 amount of free space is required. Defaults to the current working
 directory.""")
 
-    p.add_option('-c', '--config', dest='config', action='store', type='string',
-                 metavar='<CONF>', default=None, help="""\
+    p.add_argument('--config', '-c', type=file, metavar='<CONFIG>', 
+                   required=True, help="""\
 Configuration file for build. This option is mandatory.""")
 
-    p.add_option('-s', '--fetch-source', dest='fetch_source',
-                 action='store_true', default=False, help="""\
-Fetch source packages for all packages installed in the chroot and organise
-them in an archive. Default: %default""")
-
-    p.add_option('--debian-frontend', dest='debian_frontend', action='store',
-                 type='string', metavar='<FRONTEND>', default='noninteractive',
-                 help="""\
+    p.add_argument('--debian-frontend', default='noninteractive',
+                   metavar='<FRONTEND>', help="""\
 Sets the DEBIAN_FRONTEND environment variable, used by debconf, which dictates
-how package configuration questions are handled. Default: %default.""")
+how package configuration questions are handled. Default: %(default)s.""")
 
-    p.add_option('--debian-priority', dest='debian_priority', action='store',
-                 type='string', metavar='<PRIORITY>', default='critical',
-                 help="""\
+    p.add_argument('--debian-priority', default='critical',
+                   metavar='<PRIORITY>', help="""\
 Sets the DEBIAN_PRIORITY environment variable, used by debconf, which dictates
-what package configuration questions are shown. Default: %default.""")
+what package configuration questions are shown. Default: %(default)s.""")
 
-    p.add_option('--execute', dest='execute', action='store', type='string',
-                 metavar='<SCRIPT>', default='/usr/share/fll/fullstory.py',
-                 help="""\
+    p.add_argument('--execute', default='/usr/share/fll/fullstory.py',
+                   metavar='<PROGRAM>', help="""\
 Set alternative script for fll shell wrapper to execute. This option should
 never be required unless you are running fll from its source tree.
-Default: %default.""")
+Default: %(default)s.""")
 
-    p.add_option('--ftp-proxy', dest='ftp_proxy', action='store',
-                 type='string', metavar='<PROXY>', default=None,
-                 help="""\
-Sets the ftp_proxy environment variable. Default: %default.""")
+    p.add_argument('--fetch-source', '-f', action='store_true', default=False,
+                   help="""\
+Fetch source packages for all packages installed in the chroot and organise
+them in an archive. Default: %(default)s""")
 
-    p.add_option('--http-proxy', dest='http_proxy', action='store',
-                 type='string', metavar='<PROXY>', default=None,
-                 help="""\
-Sets the http_proxy environment variable. Default: %default.""")
+    p.add_argument('--ftp-proxy', metavar='<PROXY>', help="""\
+Sets the ftp_proxy environment variable.""")
+
+    p.add_argument('--http-proxy', metavar='<PROXY>', help="""\
+Sets the http_proxy environment variable.""")
 
     return p
