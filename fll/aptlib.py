@@ -37,13 +37,13 @@ class AptLib(object):
         self.chroot = chroot
         self.cache = None
 
-    def init(self, preferences={}):
+    def init(self, configuration={}):
         """Initialise apt in the chroot."""
         self.cache = apt.cache.Cache(rootdir=self.chroot.path)
 
         # Set user configurable preferences.
-        for pref in preferences:
-            apt_pkg.config.set(pref, preferences[pref])
+        for conf in configuration:
+            apt_pkg.config.set(conf, configuration[conf])
 
         # Must explicitly set architecture for interacting with chroot of
         # differing architecture to host. Chroot before invoking dpkg.

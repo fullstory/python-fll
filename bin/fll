@@ -1,0 +1,74 @@
+#!/bin/sh
+
+set -e
+
+PROXY=
+DEBIAN_FRONTEND=noninteractive
+DEBIAN_PRIORITY=critical
+
+COMMAND="/usr/share/fll/fullstory.py"
+SYSARGV="$@"
+
+while [ "$#" -gt 0 ]
+do
+	case "$1" in
+		--debian-frontend=*)
+			DEBIAN_FRONTEND="${1##*=}"
+			;;
+		--debian-frontend)
+			shift
+			DEBIAN_FRONTEND="$1"
+			;;
+		--debian-priority=*)
+			DEBIAN_PRIORITY="${1##*=}"
+			;;
+		--debian-priority)
+			shift
+			DEBIAN_PRIORITY="$1"
+			;;
+		--execute=*)
+			COMMAND="${1##*=}"
+			;;
+		--execute)
+			shift
+			COMMAND="$1"
+			;;
+		--ftp-proxy=*)
+			PROXY="$PROXY ftp_proxy=${1##*=}"
+			;;
+		--ftp-proxy)
+			shift
+			PROXY="$PROXY ftp_proxy=$1"
+			;;
+		--http-proxy=*)
+			PROXY="$PROXY http_proxy=${1##*=}"
+			;;
+		--http-proxy)
+			shift
+			PROXY="$PROXY http_proxy=$1"
+			;;
+		-h|--help)
+			exec "$COMMAND" $1
+			;;
+	esac
+	shift
+done
+
+COMMAND="$(readlink -f $COMMAND)"
+
+if [ "$(id -u)" -ne 0 ]
+then
+	echo "E: fll requires root privileges to execute $COMMAND" >&2
+	exit 1
+fi
+
+exec env -i $PROXY \
+	PATH=/usr/sbin:/usr/bin:/sbin:/bin \
+	HOME=/root \
+	SHELL=/bin/bash \
+	LANGUAGE=C \
+	LC_ALL=C \
+	LANG=C \
+	DEBIAN_FRONTEND="$DEBIAN_FRONTEND" \
+	DEBIAN_PRIORITY="$DEBIAN_PRIORITY" \
+	"$COMMAND" $SYSARGV
