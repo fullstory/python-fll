@@ -193,7 +193,7 @@ setup(
     scripts=['bin/fll'],
     data_files=[
         ('/usr/share/fll/data', ['data/locales-pkg-map']),
-        ('/usr/share/fll', ['data/fll.conf.spec']),
+        ('/usr/share/fll/data', ['data/fll.conf.spec']),
         ('/usr/share/fll', ['data/fullstory.py']),
     ],
     cmdclass={
