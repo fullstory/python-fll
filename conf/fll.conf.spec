@@ -1,17 +1,5 @@
-[ 'architectures' ]
-__many__ = string(min=3,max=1000)
-
-[ 'packages' ]
-__many__ = string(min=3,max=1000)
-
-[ 'distro' ]
-__many__ = string(min=3,max=1000)
-
-[ 'options' ]
-__many__ = string(min=3,max=1000)
-
 [ 'apt' ]
-[[ 'preferences' ]]
+[[ 'conf' ]]
 __many__ = string(min=3,max=1000)
 
 [[ 'sources' ]]
