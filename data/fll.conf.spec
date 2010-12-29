@@ -1,4 +1,7 @@
-[ 'apt' ]	
+[ 'apt' ]
+fetch_src		= boolean(default=False)
+keyserver		= string(min=1, default='wwwkeys.eu.pgp.net')
+	
 [[ 'conf' ]]
 APT::Install-Recommends = string(min=1, default='false')
 __many__		= string(min=1)
@@ -15,3 +18,6 @@ description		= string(min=1)
 uri			= string(min=1)
 suites			= string(min=1)
 components		= string(min=1)
+
+[ 'bootstrap' ]
+flavour			= option('minimal', 'build', 'standard', default='minimal')

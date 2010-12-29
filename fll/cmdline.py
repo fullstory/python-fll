@@ -57,7 +57,7 @@ Set alternative script for fll shell wrapper to execute. This option should
 never be required unless you are running fll from its source tree.
 Default: %(default)s.""")
 
-    p.add_argument('--fetch-source', '-f', action='store_true', default=False,
+    p.add_argument('--fetch-src', '-f', action='store_true', default=False,
                    help="""\
 Fetch source packages for all packages installed in the chroot and organise
 them in an archive. Default: %(default)s""")

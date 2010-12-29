@@ -28,9 +28,10 @@ class Config(object):
     Arguments:
     config_file - pathname to config file
     """
-
     def __init__(self, config_file):
-        if os.path.isfile(config_file):
+        if isinstance(config_file, file):
+            self.config_file = os.path.realpath(config_file.name)
+        elif os.path.isfile(config_file):
             self.config_file = os.path.realpath(config_file)
         else:
             raise ConfigError('%s does not exist' % config_file)
@@ -85,3 +86,6 @@ class Config(object):
             error_msgs.insert(0, 'config file failed validation: %s' %
                               self.config_file)
             raise ConfigError('\n'.join(error_msgs))
+
+    def override_conf(self, args):
+        pass

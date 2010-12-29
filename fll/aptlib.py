@@ -31,19 +31,31 @@ class AptLib(object):
     A class for preparing and using apt within a chroot.
 
     Arguments:
-    chroot - (str) an fll.chroot.Chroot object
+    chroot - fll.chroot.Chroot object
+    conf   - the 'apt' section of fll.config.Config object
     """
-    def __init__(self, chroot):
+    def __init__(self, chroot, config):
         self.chroot = chroot
+        self.config = config
         self.cache = None
+        self.debian_bootstrap_uri = self._get_debian_bootstrap_uri()
 
-    def init(self, configuration={}):
+    def init_cache(self):
         """Initialise apt in the chroot."""
         self.cache = apt.cache.Cache(rootdir=self.chroot.path)
 
         # Set user configurable preferences.
-        for conf in configuration:
-            apt_pkg.config.set(conf, configuration[conf])
+        for keyword, value in self.config['conf'].iteritems():
+            apt_pkg.config.set(keyword, value)
+
+        # Set apt proxy configuration if env var(s) present
+        http_proxy = os.getenv('http_proxy')
+        if http_proxy:
+            apt_pkg.config.set('Acquire::http::Proxy', http_proxy)
+
+        ftp_proxy = os.getenv('ftp_proxy')
+        if ftp_proxy:
+            apt_pkg.config.set('Acquire::ftp::Proxy', ftp_proxy)
 
         # Must explicitly set architecture for interacting with chroot of
         # differing architecture to host. Chroot before invoking dpkg.
@@ -53,7 +65,20 @@ class AptLib(object):
         # Avoid apt-listchanges / dpkg-preconfigure
         apt_pkg.Config.clear("DPkg::Pre-Install-Pkgs")
 
-    def sources_list(self, sources, cached_uris=False, src_uris=False):
+    def init_chroot(self):
+        self.sources_list(cached_uris=True, src_uris=self.config['fetch_src'])
+        self.init_cache()
+        self.update()
+        self.key()
+
+    def _get_debian_bootstrap_uri(self):
+        cached_uri = self.config['sources']['debian'].get('cached_uri')
+        if cached_uri:
+            return cached_uri
+
+        return self.config['sources']['debian']['uri']
+
+    def sources_list(self, cached_uris=False, src_uris=False):
         """Write apt sources to file(s) in /etc/apt/sources.list.d/*.list.
         Create /etc/apt/sources.list with some boilerplate text about
         the lists in /etc/apt/sources.list.d/."""
@@ -83,7 +108,7 @@ class AptLib(object):
                  'managed via the apt-cdrom utility.']
         write_sources_list_comment(sources_list, lines)
 
-        for name, source in sources.items():
+        for name, source in self.config['sources'].iteritems():
             description = source.get('description')
             uri = source.get('uri')
             cached_uri = source.get('cached_uri')
@@ -117,13 +142,13 @@ class AptLib(object):
         gpg.extend(args)
         self.chroot.cmd(gpg)
 
-    def key(self, sources, keyserver='wwwkeys.eu.pgp.net'):
+    def key(self):
         """Import and gpg keys, install any -keyring packages that are
         required to authenticate apt sources. Update and refresh apt cache."""
         gpgkeys = []
         keyrings = []
 
-        for name, source in sources.items():
+        for name, source in self.config['sources'].iteritems():
             gpgkey = source.get('gpgkey')
             if gpgkey:
                 gpgkeys.append(gpgkey)
@@ -150,7 +175,7 @@ class AptLib(object):
 
         if recv_keys:
             recv_keys.insert(0, '--keyserver')
-            recv_keys.insert(1, keyserver)
+            recv_keys.insert(1, self.config['keyserver'])
             recv_keys.insert(2, '--recv-keys')
             self._gpg(recv_keys)
 

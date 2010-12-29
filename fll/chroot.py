@@ -114,7 +114,7 @@ class Chroot(object):
             fh.flush()
             self.cmd([dss, self.chroot_path_rel(fh.name)])
 
-    def prep_chroot(self):
+    def prep(self):
         """Configure the basics to get a functioning chroot."""
         for fname in ('/etc/hosts', '/etc/resolv.conf'):
             os.unlink(self.chroot_path(fname))
@@ -133,7 +133,7 @@ class Chroot(object):
         debconf = ['man-db man-db/auto-update boolean false']
         self.debconf_set_selections(debconf)
 
-    def undo_chroot(self):
+    def undo(self):
         """Undo any changes in the chroot which should be undone. Make any
         final configurations."""
         for fname in ('/etc/hosts', '/etc/resolv.conf'):
