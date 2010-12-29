@@ -120,8 +120,8 @@ class AptLib(object):
     def key(self, sources, keyserver='wwwkeys.eu.pgp.net'):
         """Import and gpg keys, install any -keyring packages that are
         required to authenticate apt sources. Update and refresh apt cache."""
-        gpgkeys = list()
-        keyrings = list()
+        gpgkeys = []
+        keyrings = []
 
         for name, source in sources.items():
             gpgkey = source.get('gpgkey')
@@ -132,8 +132,8 @@ class AptLib(object):
             if keyring:
                 keyrings.append(keyring)
 
-        fetch_keys = list()
-        recv_keys = list()
+        fetch_keys = []
+        recv_keys = []
 
         for key in gpgkeys:
             if os.path.isfile(key):
