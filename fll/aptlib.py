@@ -87,15 +87,14 @@ class AptLib(object):
             description = source.get('description')
             uri = source.get('uri')
             cached_uri = source.get('cached_uri')
-            suite = source.get('suite')
+            suites = source.get('suites')
             components = source.get('components')
 
             fname = '/etc/apt/sources.list.d/%s.list' % name
             write_sources_list_comment(sources_list, [description, fname],
                                        mode='a')
             
-            suites = suite.split()
-            for suite in suites:
+            for suite in suites.split():
                 if cached_uris and cached_uri:
                     line = '%s %s %s' % (cached_uri, suite, components)
                 else:

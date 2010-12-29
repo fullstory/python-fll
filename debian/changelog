@@ -12,8 +12,10 @@ python-fll (0.9.0) UNRELEASED; urgency=low
     fll.locales is pending overhaul.
   * Install a ConfigObj spec file for configuration validation.
   * Remove x bit from fll/locales.py.
+  * Do configuration file validation, set default values in validation
+    specification.
 
- -- Kel Modderman <kel@otaku42.de>  Wed, 29 Dec 2010 17:08:47 +1000
+ -- Kel Modderman <kel@otaku42.de>  Wed, 29 Dec 2010 22:45:46 +1000
 
 python-fll (0.2.2) unstable; urgency=low
 
