@@ -25,10 +25,14 @@ class Config(object):
     """
     A class for abstracting the fll configuration file.
 
-    Arguments:
-    config_file - pathname to config file
+    Options       Type  Description
+    --------------------------------------------------------------------------
+    config_file - (str) pathname to config file
     """
-    def __init__(self, config_file):
+    def __init__(self, config_file=None):
+        if config_file is None:
+            raise ConfigError('must specify config_file=')
+
         if isinstance(config_file, file):
             self.config_file = os.path.realpath(config_file.name)
         elif os.path.isfile(config_file):

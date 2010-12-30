@@ -30,11 +30,17 @@ class AptLib(object):
     """
     A class for preparing and using apt within a chroot.
 
-    Arguments:
-    chroot - fll.chroot.Chroot object
-    conf   - the 'apt' section of fll.config.Config object
+    Options  Type                Description
+    --------------------------------------------------------------------------
+    chroot - (fll.chroot.Chroot) fll.chroot.Chroot object
+    config - (dict)              the 'apt' section of fll.config.Config object
     """
-    def __init__(self, chroot, config):
+    def __init__(self, chroot=None, config={}):
+        if chroot is None:
+            raise AptLibError('must specify chroot=')
+        if not config:
+            raise AptLibError('must specify config=')
+
         self.chroot = chroot
         self.config = config
         self.cache = None
@@ -42,7 +48,7 @@ class AptLib(object):
 
     def init_cache(self):
         """Initialise apt in the chroot."""
-        self.cache = apt.cache.Cache(rootdir=self.chroot.path)
+        self.cache = apt.cache.Cache(rootdir=self.chroot.rootdir)
 
         # Set user configurable preferences.
         for keyword, value in self.config['conf'].iteritems():
@@ -59,8 +65,8 @@ class AptLib(object):
 
         # Must explicitly set architecture for interacting with chroot of
         # differing architecture to host. Chroot before invoking dpkg.
-        apt_pkg.config.set('APT::Architecture', self.chroot.arch)
-        apt_pkg.config.set('Dpkg::Chroot-Directory', self.chroot.path)
+        apt_pkg.config.set('APT::Architecture', self.chroot.architecture)
+        apt_pkg.config.set('Dpkg::Chroot-Directory', self.chroot.rootdir)
 
         # Avoid apt-listchanges / dpkg-preconfigure
         apt_pkg.Config.clear("DPkg::Pre-Install-Pkgs")
@@ -162,7 +168,7 @@ class AptLib(object):
 
         for key in gpgkeys:
             if os.path.isfile(key):
-                with nested(tempfile.NamedTemporaryFile(dir=self.chroot.path),
+                with nested(tempfile.NamedTemporaryFile(dir=self.chroot.rootdir),
                             file(key)) as (fdst, fsrc):
                     shutil.copyfileobj(fsrc, fdst)
                     fdst.flush()

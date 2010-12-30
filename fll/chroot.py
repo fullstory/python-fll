@@ -29,56 +29,70 @@ class Chroot(object):
     A class which provides the ability to bootstrap and execute commands
     within a chroot.
 
-    Arguments:
-    path     - path to root of chroot
-    arch     - architecture of chroot
-
-    Options:
-    hostname - (str)  hostname of chroot
-    preserve - (bool) preserve chroot filesystem, default False
+    Options        Type   Description
+    --------------------------------------------------------------------------
+    rootdir      - (str)  path to root of chroot
+    architecture - (str)  architecture of chroot
+    config       - (dict) the 'chroot' section of fll.config.Config object
+    hostname     - (str)  hostname of chroot
+    preserve     - (bool) preserve chroot filesystem, default False
     """
     diverts = ['/usr/sbin/policy-rc.d', '/sbin/modprobe', '/sbin/insmod',
                '/usr/sbin/update-grub', '/usr/sbin/update-initramfs',
                '/sbin/initctl', '/sbin/start-stop-daemon']
 
-    def __init__(self, path, arch, hostname='chroot', preserve=False):
-        self.path = os.path.realpath(path)
-        self.arch = arch
-        self.hostname = hostname
-        self.preserve = preserve
+    def __init__(self, rootdir=None, architecture=None, config={}):
+        if rootdir is None:
+            raise AptLibError('must specify rootdir=')
+        if architecture is None:
+            raise AptLibError('must specify architecture=')
+        if not config:
+            raise AptLibError('must specify config=')
+
+        self.rootdir = os.path.realpath(rootdir)
+        self.architecture = architecture
+        self.config = config
 
     def __enter__(self):
         return self
 
     def __exit__(self, type, value, traceback):
-        if not self.preserve:
+        if not self.config['preserve']:
             self.nuke()
 
-    def bootstrap(self, bootstrapper='cdebootstrap', suite='sid',
-                  flavour='minimal', variant='minbase',
-                  arch=None, mirror=None, quiet=False, verbose=False,
-                  debug=False, include=list(), exclude=list()):
-
+    def bootstrap(self, arch=None, mirror='http://cdn.debian.net/debian/'):
         """Bootstrap a Debian chroot. By default it will bootstrap a minimal
         sid chroot with cdebootstrap."""
+        bootstrapper=self.config['bootstrap']['bootstrapper']
+        suite=self.config['bootstrap']['suite']
+        flavour=self.config['bootstrap']['flavour']
+        quiet=self.config['bootstrap']['quiet']
+        verbose=self.config['bootstrap']['verbose']
+        debug=self.config['bootstrap']['debug']
+        include=self.config['bootstrap']['include']
+        exclude=self.config['bootstrap']['exclude']
 
         cmd = [bootstrapper]
 
         if bootstrapper == 'cdebootstrap':
             cmd.append('--flavour=' + flavour)
         elif bootstrapper == 'debootstrap':
-            cmd.append('--variant=' + variant)
+            if flavour == 'minimal':
+                flavour = 'minbase'
+            elif flavour == 'build':
+                flavour = 'buildd'
+            cmd.append('--variant=' + flavour)
         else:
             raise ChrootError('unknown bootstrapper: ' + bootstrapper)
 
         if arch:
             cmd.append('--arch=' + arch)
         else:
-            cmd.append('--arch=' + self.arch)
+            cmd.append('--arch=' + self.architecture)
         if include:
-            cmd.append('--include=' + (',').join(include))
+            cmd.append('--include=' + include)
         if exclude:
-            cmd.append('--exclude=' + (',').join(exclude))
+            cmd.append('--exclude=' + exclude)
         if verbose:
             cmd.append('--verbose')        
         if debug and bootstrapper == 'cdebootstrap':
@@ -87,7 +101,7 @@ class Chroot(object):
             cmd.append('--quiet')
         
         cmd.append(suite)
-        cmd.append(self.path)
+        cmd.append(self.rootdir)
         cmd.append(mirror)
 
         print ' '.join(cmd)
@@ -108,16 +122,17 @@ class Chroot(object):
         if not os.path.exists(self.chroot_path(dss)):
             return
 
-        with tempfile.NamedTemporaryFile(dir=self.path) as fh:
+        with tempfile.NamedTemporaryFile(dir=self.rootdir) as fh:
             for line in selections:
                 print >>fh, line
             fh.flush()
             self.cmd([dss, self.chroot_path_rel(fh.name)])
 
-    def prep(self):
+    def init(self):
         """Configure the basics to get a functioning chroot."""
         for fname in ('/etc/hosts', '/etc/resolv.conf'):
-            os.unlink(self.chroot_path(fname))
+            if os.path.isfile(self.chroot_path(fname)):
+                os.unlink(self.chroot_path(fname))
             shutil.copy(fname, self.chroot_path(fname))
 
         for fname in ('/etc/fstab', '/etc/hostname',
@@ -133,7 +148,7 @@ class Chroot(object):
         debconf = ['man-db man-db/auto-update boolean false']
         self.debconf_set_selections(debconf)
 
-    def undo(self):
+    def deinit(self):
         """Undo any changes in the chroot which should be undone. Make any
         final configurations."""
         for fname in ('/etc/hosts', '/etc/resolv.conf'):
@@ -154,10 +169,10 @@ class Chroot(object):
             self.cmd('/usr/bin/mandb --create --quiet')
 
     def chroot_path(self, path):
-        return os.path.join(self.path, path.lstrip('/'))
+        return os.path.join(self.rootdir, path.lstrip('/'))
 
     def chroot_path_rel(self, path):
-        return path.replace(self.path, '')
+        return path.replace(self.rootdir, '')
 
     def create_file(self, filename, mode=0644):
         fh = None
@@ -182,7 +197,7 @@ exit %d""" % retv
 # /etc/fstab: static file system information."""
 
             elif filename == '/etc/hostname':
-                print >>fh, self.hostname
+                print >>fh, self.config['hostname']
 
             elif filename == '/etc/hosts':
                 print >>fh, """\
@@ -195,7 +210,7 @@ fe00::0 ip6-localnet
 ff00::0 ip6-mcastprefix
 ff02::1 ip6-allnodes
 ff02::2 ip6-allrouters
-ff02::3 ip6-allhosts""" % self.hostname
+ff02::3 ip6-allhosts""" % self.config['hostname']
 
             elif filename == '/etc/network/interfaces':
                 print >>fh, """\
@@ -227,7 +242,7 @@ iface lo inet loopback"""
         with open('/proc/mounts') as mounts:
             for line in mounts:
                 name, mnt, vfstype, opts, freqno, passno = line.split()
-                if mnt.startswith(self.path):
+                if mnt.startswith(self.rootdir):
                     umount.append(mnt)
 
         umount.sort(key=len)
@@ -246,23 +261,23 @@ iface lo inet loopback"""
         self.umountvirtfs()
 
         try:
-            if os.path.isdir(self.path):
-                shutil.rmtree(self.path)
+            if os.path.isdir(self.rootdir):
+                shutil.rmtree(self.rootdir)
         except IOError:
-            raise ChrootError('failed to nuke chroot: ' + self.path)
+            raise ChrootError('failed to nuke chroot: ' + self.rootdir)
 
     def _chroot(self):
         """Convenience function so that subprocess may be executed in chroot
         via preexec_fn. Restore SIGPIPE."""
         fll.misc.restore_sigpipe()
-        os.chroot(self.path)
+        os.chroot(self.rootdir)
 
     def cmd(self, cmd, pipe=False):
         """Execute a command in the chroot."""
         if isinstance(cmd, str):
             cmd = shlex.split(cmd)
 
-        print 'chroot %s %s' % (self.path, ' '.join(cmd))
+        print 'chroot %s %s' % (self.rootdir, ' '.join(cmd))
 
         self.mountvirtfs()
         try:

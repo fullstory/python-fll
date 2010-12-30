@@ -19,5 +19,16 @@ uri			= string(min=1)
 suites			= string(min=1)
 components		= string(min=1)
 
-[ 'bootstrap' ]
+[ 'chroot' ]
+preserve		= boolean(default=False)
+hostname		= string(min=1, default='chroot')
+
+[[ 'bootstrap' ]]
+bootstrapper		= option('cdebootstrap', 'debootstrap', default='cdebootstrap')
+suite			= string(min=1, default='sid')
 flavour			= option('minimal', 'build', 'standard', default='minimal')
+include			= string(min=1, default=None)
+exclude			= string(min=1, default=None)
+quiet			= boolean(default=False)
+verbose			= boolean(default=False)
+debug			= boolean(default=False)
