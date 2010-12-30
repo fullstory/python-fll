@@ -46,7 +46,16 @@ class AptLib(object):
         self.cache = None
         self.debian_bootstrap_uri = self._get_debian_bootstrap_uri()
 
-    def init_cache(self):
+        # Set env var(s) if apt proxy configuration present
+        http_proxy = config['conf'].get('Acquire::http::Proxy')
+        if http_proxy:
+            os.environ.update({'http_proxy': http_proxy})
+
+        ftp_proxy = config['conf'].get('Acquire::ftp::Proxy')
+        if ftp_proxy:
+            os.environ.update({'ftp_proxy': ftp_proxy})
+
+    def _init_cache(self):
         """Initialise apt in the chroot."""
         self.cache = apt.cache.Cache(rootdir=self.chroot.rootdir)
 
@@ -71,11 +80,15 @@ class AptLib(object):
         # Avoid apt-listchanges / dpkg-preconfigure
         apt_pkg.Config.clear("DPkg::Pre-Install-Pkgs")
 
-    def init_chroot(self):
+    def init(self):
         self.sources_list(cached_uris=True, src_uris=self.config['fetch_src'])
-        self.init_cache()
+        self._init_cache()
         self.update()
         self.key()
+
+    def deinit(self):
+        self.sources_list(cached_uris=False, src_uris=False)
+        #self.clean()
 
     def _get_debian_bootstrap_uri(self):
         cached_uri = self.config['sources']['debian'].get('cached_uri')
