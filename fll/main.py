@@ -9,11 +9,11 @@ License:   GPL-2
 from fll.aptlib import AptLib, AptLibError, AptLibProgress
 from fll.chroot import Chroot, ChrootError
 from fll.config import Config, ConfigError
-from fll.cmdline import cmdline
+import fll.cmdline
 
 import os
 import sys
 
 
 def main():
-    args = cmdline().parse_args()
+    args = fll.cmdline.cmdline().parse_args()
