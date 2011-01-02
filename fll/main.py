@@ -17,3 +17,5 @@ import sys
 
 def main():
     args = fll.cmdline.cmdline().parse_args()
+    conf = Config(config_file=args.config, cmdline=args)
+    conf.set_environment()

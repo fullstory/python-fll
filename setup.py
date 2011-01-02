@@ -192,8 +192,7 @@ setup(
     scripts=['bin/fll'],
     data_files=[
         ('/usr/share/fll/data', ['data/locales-pkg-map']),
-        ('/usr/share/fll/data', ['data/fll.conf.spec']),
-        ('/usr/share/fll', ['data/fullstory.py']),
+        ('/usr/share/fll', ['conf/fll.conf.spec']),
     ],
     cmdclass={
         'build_manpage': build_manpage,

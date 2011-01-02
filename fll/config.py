@@ -25,28 +25,36 @@ class Config(object):
     """
     A class for abstracting the fll configuration file.
 
-    Options       Type  Description
+    Options       Type        Description
     --------------------------------------------------------------------------
-    config_file - (str) pathname to config file
+    config_file - (str)       pathname to config file
+    cmdline     - (Namespace) an argparse Namespace object
     """
-    def __init__(self, config_file=None):
+    def __init__(self, config_file=None, cmdline=None):
         if config_file is None:
-            raise ConfigError('must specify config_file=')
-
-        if isinstance(config_file, file):
+            if os.path.isfile('conf/fll.conf'):
+                self.config_file = os.path.realpath('conf/fll.conf')
+            else:
+                self.config_file = os.path.realpath('/etc/fll/fll.conf')
+        elif isinstance(config_file, file):
             self.config_file = os.path.realpath(config_file.name)
         elif os.path.isfile(config_file):
             self.config_file = os.path.realpath(config_file)
         else:
             raise ConfigError('%s does not exist' % config_file)
 
-        if os.path.isfile('data/fll.conf.spec'):
-            self.config_spec = os.path.realpath('data/fll.conf.spec')
+        if os.path.isfile('conf/fll.conf.spec'):
+            self.config_spec = os.path.realpath('conf/fll.conf.spec')
         else:
-            self.config_spec = '/usr/share/fll/data/fll.conf.spec'
+            self.config_spec = '/usr/share/fll/fll.conf.spec'
 
-        self.config = ConfigObj(config_file, configspec=self.config_spec)
+        self.config = ConfigObj(self.config_file,
+                                configspec=self.config_spec,
+                                interpolation='template')
         self._validate()
+
+        if cmdline:
+            self._args_override(cmdline)
 
     def _validate(self):
         result = self.config.validate(Validator(), preserve_errors=True)
@@ -91,5 +99,26 @@ class Config(object):
                               self.config_file)
             raise ConfigError('\n'.join(error_msgs))
 
-    def override_conf(self, args):
+    def _args_override(self, args):
         pass
+
+    def set_environment(self):
+        for k, v in self.config['environment'].iteritems():
+            os.putenv(k, v)
+        for k in os.environ.iterkeys():
+            if k in self.config['environment']:
+                continue
+            os.unsetenv(k)
+        os.environ = self.config['environment']
+
+        if 'http_proxy' in self.config:
+            os.putenv('http_proxy', self.config['http_proxy'])
+            os.environ['http_proxy'] = self.config['http_proxy']
+            self.config['apt']['conf']['Acquire::http::Proxy'] = \
+                self.config['http_proxy']
+
+        if 'ftp_proxy' in self.config:
+            os.putenv('ftp_proxy', self.config['ftp_proxy'])
+            os.environ['ftp_proxy'] = self.config['ftp_proxy']
+            self.config['apt']['conf']['Acquire::ftp::Proxy'] = \
+                self.config['ftp_proxy']

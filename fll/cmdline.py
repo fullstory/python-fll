@@ -38,8 +38,8 @@ amount of free space is required. Defaults to the current working
 directory.""")
 
     p.add_argument('--config', '-c', type=file, metavar='<CONFIG>', 
-                   required=True, help="""\
-Configuration file for build. This option is mandatory.""")
+                   help="""\
+Configuration file for build.""")
 
     p.add_argument('--debian-frontend', default='noninteractive',
                    metavar='<FRONTEND>', help="""\

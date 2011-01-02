@@ -60,10 +60,11 @@ class Chroot(object):
         if not self.config['preserve']:
             self.nuke()
 
-    def bootstrap(self, arch=None, mirror='http://cdn.debian.net/debian/'):
+    def bootstrap(self):
         """Bootstrap a Debian chroot. By default it will bootstrap a minimal
         sid chroot with cdebootstrap."""
         bootstrapper=self.config['bootstrap']['bootstrapper']
+        mirror=self.config['bootstrap']['mirror']
         suite=self.config['bootstrap']['suite']
         flavour=self.config['bootstrap']['flavour']
         quiet=self.config['bootstrap']['quiet']
@@ -85,10 +86,8 @@ class Chroot(object):
         else:
             raise ChrootError('unknown bootstrapper: ' + bootstrapper)
 
-        if arch:
-            cmd.append('--arch=' + arch)
-        else:
-            cmd.append('--arch=' + self.architecture)
+        cmd.append('--arch=' + self.architecture)
+
         if include:
             cmd.append('--include=' + include)
         if exclude:

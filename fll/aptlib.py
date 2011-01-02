@@ -44,16 +44,6 @@ class AptLib(object):
         self.chroot = chroot
         self.config = config
         self.cache = None
-        self.debian_bootstrap_uri = self._get_debian_bootstrap_uri()
-
-        # Set env var(s) if apt proxy configuration present
-        http_proxy = config['conf'].get('Acquire::http::Proxy')
-        if http_proxy:
-            os.environ.update({'http_proxy': http_proxy})
-
-        ftp_proxy = config['conf'].get('Acquire::ftp::Proxy')
-        if ftp_proxy:
-            os.environ.update({'ftp_proxy': ftp_proxy})
 
     def _init_cache(self):
         """Initialise apt in the chroot."""
@@ -62,15 +52,6 @@ class AptLib(object):
         # Set user configurable preferences.
         for keyword, value in self.config['conf'].iteritems():
             apt_pkg.config.set(keyword, value)
-
-        # Set apt proxy configuration if env var(s) present
-        http_proxy = os.getenv('http_proxy')
-        if http_proxy:
-            apt_pkg.config.set('Acquire::http::Proxy', http_proxy)
-
-        ftp_proxy = os.getenv('ftp_proxy')
-        if ftp_proxy:
-            apt_pkg.config.set('Acquire::ftp::Proxy', ftp_proxy)
 
         # Must explicitly set architecture for interacting with chroot of
         # differing architecture to host. Chroot before invoking dpkg.
@@ -81,23 +62,16 @@ class AptLib(object):
         apt_pkg.Config.clear("DPkg::Pre-Install-Pkgs")
 
     def init(self):
-        self.sources_list(cached_uris=True, src_uris=self.config['fetch_src'])
+        self.sources_list(fetch_src=self.config['fetch_src'])
         self._init_cache()
         self.update()
         self.key()
 
     def deinit(self):
-        self.sources_list(cached_uris=False, src_uris=False)
+        self.sources_list(fetch_src=False)
         #self.clean()
 
-    def _get_debian_bootstrap_uri(self):
-        cached_uri = self.config['sources']['debian'].get('cached_uri')
-        if cached_uri:
-            return cached_uri
-
-        return self.config['sources']['debian']['uri']
-
-    def sources_list(self, cached_uris=False, src_uris=False):
+    def sources_list(self, fetch_src=False):
         """Write apt sources to file(s) in /etc/apt/sources.list.d/*.list.
         Create /etc/apt/sources.list with some boilerplate text about
         the lists in /etc/apt/sources.list.d/."""
@@ -129,8 +103,7 @@ class AptLib(object):
 
         for name, source in self.config['sources'].iteritems():
             description = source.get('description')
-            uri = source.get('uri')
-            cached_uri = source.get('cached_uri')
+            mirror = source.get('mirror')
             suites = source.get('suites')
             components = source.get('components')
 
@@ -139,15 +112,11 @@ class AptLib(object):
                                        mode='a')
             
             for suite in suites.split():
-                if cached_uris and cached_uri:
-                    line = '%s %s %s' % (cached_uri, suite, components)
-                else:
-                    line = '%s %s %s' % (uri, suite, components)
-                
+                line = '%s %s %s' % (mirror, suite, components)
                 try:
                     with open(self.chroot.chroot_path(fname), 'a') as fh:
                         print >>fh, 'deb ' + line
-                        if src_uris:
+                        if fetch_src:
                             print >>fh, 'deb-src ' + line
                 except IOError, e:
                     raise AptLibError('failed to write %s: %s' % (fname, e))
