@@ -41,31 +41,23 @@ directory.""")
                    help="""\
 Configuration file for build.""")
 
-    p.add_argument('--debian-frontend', default='noninteractive',
-                   metavar='<FRONTEND>', help="""\
-Sets the DEBIAN_FRONTEND environment variable, used by debconf, which dictates
-how package configuration questions are handled. Default: %(default)s.""")
-
-    p.add_argument('--debian-priority', default='critical',
-                   metavar='<PRIORITY>', help="""\
-Sets the DEBIAN_PRIORITY environment variable, used by debconf, which dictates
-what package configuration questions are shown. Default: %(default)s.""")
-
-    p.add_argument('--execute', default='/usr/share/fll/fullstory.py',
-                   metavar='<PROGRAM>', help="""\
-Set alternative script for fll shell wrapper to execute. This option should
-never be required unless you are running fll from its source tree.
-Default: %(default)s.""")
-
-    p.add_argument('--fetch-src', '-f', action='store_true', default=False,
-                   help="""\
+    p.add_argument('--apt-fetch-src', '-f', action='store_true',
+                   default=False, help="""\
 Fetch source packages for all packages installed in the chroot and organise
 them in an archive. Default: %(default)s""")
+
+    p.add_argument('--apt-keyserver', '-k', metavar='<SERVER>',
+                   help="""\
+GPG keyserver URI. GPG keys used to secure apt will be fetched from this
+keyserver. Default: wwwkeys.eu.pgp.net""")
 
     p.add_argument('--ftp-proxy', metavar='<PROXY>', help="""\
 Sets the ftp_proxy environment variable.""")
 
     p.add_argument('--http-proxy', metavar='<PROXY>', help="""\
 Sets the http_proxy environment variable.""")
+
+    p.add_argument('--mirror', metavar='<URI>', help="""\
+Debian mirror to be used. Default: http://cdn.debian.net/debian/""")
 
     return p

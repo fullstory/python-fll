@@ -103,7 +103,7 @@ class AptLib(object):
 
         for name, source in self.config['sources'].iteritems():
             description = source.get('description')
-            mirror = source.get('mirror')
+            uri = source.get('uri')
             suites = source.get('suites')
             components = source.get('components')
 
@@ -112,7 +112,7 @@ class AptLib(object):
                                        mode='a')
             
             for suite in suites.split():
-                line = '%s %s %s' % (mirror, suite, components)
+                line = '%s %s %s' % (uri, suite, components)
                 try:
                     with open(self.chroot.chroot_path(fname), 'a') as fh:
                         print >>fh, 'deb ' + line

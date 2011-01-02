@@ -64,7 +64,7 @@ class Chroot(object):
         """Bootstrap a Debian chroot. By default it will bootstrap a minimal
         sid chroot with cdebootstrap."""
         bootstrapper=self.config['bootstrap']['bootstrapper']
-        mirror=self.config['bootstrap']['mirror']
+        uri=self.config['bootstrap']['uri']
         suite=self.config['bootstrap']['suite']
         flavour=self.config['bootstrap']['flavour']
         quiet=self.config['bootstrap']['quiet']
@@ -101,7 +101,7 @@ class Chroot(object):
         
         cmd.append(suite)
         cmd.append(self.rootdir)
-        cmd.append(mirror)
+        cmd.append(uri)
 
         print ' '.join(cmd)
 

@@ -11,13 +11,13 @@ __many__		= string(min=1)
 [[ 'sources' ]]
 [[[ 'debian' ]]]
 description		= string(min=1, default='Debian GNU/Linux')
-mirror			= string(min=1, default='http://cdn.debian.net/debian/')
+uri			= string(min=1, default='http://cdn.debian.net/debian/')
 suites			= string(min=1, default='sid')
 components		= string(min=1, default='main')
 
 [[[ __many__ ]]]
 description		= string(min=1)
-mirror			= string(min=1)
+uri			= string(min=1)
 suites			= string(min=1)
 components		= string(min=1)
 
@@ -28,7 +28,7 @@ hostname		= string(min=1, default='chroot')
 [[ 'bootstrap' ]]
 bootstrapper		= option('cdebootstrap', 'debootstrap', default='cdebootstrap')
 suite			= string(min=1, default='sid')
-mirror			= string(min=1, default='http://cdn.debian.net/debian/')
+uri			= string(min=1, default='http://cdn.debian.net/debian/')
 flavour			= option('minimal', 'build', 'standard', default='minimal')
 include			= string(min=1, default=None)
 exclude			= string(min=1, default=None)
