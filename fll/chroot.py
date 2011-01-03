@@ -34,8 +34,6 @@ class Chroot(object):
     rootdir      - (str)  path to root of chroot
     architecture - (str)  architecture of chroot
     config       - (dict) the 'chroot' section of fll.config.Config object
-    hostname     - (str)  hostname of chroot
-    preserve     - (bool) preserve chroot filesystem, default False
     """
     diverts = ['/usr/sbin/policy-rc.d', '/sbin/modprobe', '/sbin/insmod',
                '/usr/sbin/update-grub', '/usr/sbin/update-initramfs',
@@ -63,28 +61,32 @@ class Chroot(object):
     def bootstrap(self):
         """Bootstrap a Debian chroot. By default it will bootstrap a minimal
         sid chroot with cdebootstrap."""
-        bootstrapper=self.config['bootstrap']['bootstrapper']
-        uri=self.config['bootstrap']['uri']
-        suite=self.config['bootstrap']['suite']
-        flavour=self.config['bootstrap']['flavour']
-        quiet=self.config['bootstrap']['quiet']
-        verbose=self.config['bootstrap']['verbose']
-        debug=self.config['bootstrap']['debug']
-        include=self.config['bootstrap']['include']
-        exclude=self.config['bootstrap']['exclude']
+        utility = self.config['bootstrap']['utility']
+        uri = self.config['bootstrap']['uri']
+        suite = self.config['bootstrap']['suite']
+        flavour = self.config['bootstrap']['flavour']
+        quiet = self.config['bootstrap']['quiet']
+        if not quiet:
+            quiet = self.config['quiet']
+        verbose = self.config['bootstrap']['verbose']
+        debug = self.config['bootstrap']['debug']
+        if not debug:
+            debug = self.config['debug']
+        include = self.config['bootstrap']['include']
+        exclude = self.config['bootstrap']['exclude']
 
-        cmd = [bootstrapper]
+        cmd = [utility]
 
-        if bootstrapper == 'cdebootstrap':
+        if utility == 'cdebootstrap':
             cmd.append('--flavour=' + flavour)
-        elif bootstrapper == 'debootstrap':
+        elif utility == 'debootstrap':
             if flavour == 'minimal':
                 flavour = 'minbase'
             elif flavour == 'build':
                 flavour = 'buildd'
             cmd.append('--variant=' + flavour)
         else:
-            raise ChrootError('unknown bootstrapper: ' + bootstrapper)
+            raise ChrootError('unknown utility: ' + utility)
 
         cmd.append('--arch=' + self.architecture)
 
@@ -94,16 +96,17 @@ class Chroot(object):
             cmd.append('--exclude=' + exclude)
         if verbose:
             cmd.append('--verbose')        
-        if debug and bootstrapper == 'cdebootstrap':
+        if debug and utility == 'cdebootstrap':
             cmd.append('--debug')
-        if quiet and bootstrapper == 'cdebootstrap':
+        if quiet and utility == 'cdebootstrap':
             cmd.append('--quiet')
         
         cmd.append(suite)
         cmd.append(self.rootdir)
         cmd.append(uri)
 
-        print ' '.join(cmd)
+        if not quiet:
+            print ' '.join(cmd)
 
         try:
             subprocess.check_call(cmd, preexec_fn=fll.misc.restore_sigpipe)
@@ -112,7 +115,7 @@ class Chroot(object):
 
         # Some flavours use cdebootstrap-helper-rc.d, some don't. We'll
         # impliment our our own policy-rc.d for consistency.
-        if bootstrapper == 'cdebootstrap':
+        if utility == 'cdebootstrap':
             self.cmd('dpkg --purge cdebootstrap-helper-rc.d'.split())
 
     def debconf_set_selections(self, selections):
@@ -196,12 +199,12 @@ exit %d""" % retv
 # /etc/fstab: static file system information."""
 
             elif filename == '/etc/hostname':
-                print >>fh, self.config['hostname']
+                print >>fh, 'chroot'
 
             elif filename == '/etc/hosts':
                 print >>fh, """\
 127.0.0.1\tlocalhost
-127.0.0.1\t%s
+127.0.0.1\tchroot
 
 # Below lines are for IPv6 capable hosts
 ::1     ip6-localhost ip6-loopback
@@ -209,7 +212,7 @@ fe00::0 ip6-localnet
 ff00::0 ip6-mcastprefix
 ff02::1 ip6-allnodes
 ff02::2 ip6-allrouters
-ff02::3 ip6-allhosts""" % self.config['hostname']
+ff02::3 ip6-allhosts"""
 
             elif filename == '/etc/network/interfaces':
                 print >>fh, """\
@@ -270,30 +273,44 @@ iface lo inet loopback"""
         via preexec_fn. Restore SIGPIPE."""
         fll.misc.restore_sigpipe()
         os.chroot(self.rootdir)
+        os.chdir('/')
 
     def cmd(self, cmd, pipe=False):
         """Execute a command in the chroot."""
         if isinstance(cmd, str):
             cmd = shlex.split(cmd)
 
-        print 'chroot %s %s' % (self.rootdir, ' '.join(cmd))
+        if not self.config['quiet']:
+            print 'CHROOT %s %s' % (self.rootdir, ' '.join(cmd))
+
+        devnull = output = None
 
         self.mountvirtfs()
         try:
             if pipe:
                 proc = subprocess.Popen(cmd, preexec_fn=self._chroot, cwd='/',
                                         stdout=subprocess.PIPE)
+                output = proc.communicate()[0]
+            elif self.config['quiet']:
+                devnull = os.open(os.devnull, os.O_RDWR)
+                proc = subprocess.Popen(cmd, preexec_fn=self._chroot, cwd='/',
+                                        stdout=devnull)
+                proc.wait()
             else:
                 proc = subprocess.Popen(cmd, preexec_fn=self._chroot, cwd='/')
-            proc.wait()
+                proc.wait()
         except OSError, e:
             raise ChrootError('chrooted command failed: %s' % e)
         finally:
             self.umountvirtfs()
+            if devnull:
+                os.close(devnull)
 
         if proc.returncode != 0:
             raise ChrootError('chrooted command returncode=%d: %s' %
                               (proc.returncode, ' '.join(cmd)))
 
         if pipe:
-            return proc.communicate()
+            return proc.returncode, output
+        else:
+            return proc.returncode

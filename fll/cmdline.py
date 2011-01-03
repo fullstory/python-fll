@@ -8,7 +8,6 @@ License:   GPL-2
 """
 
 import argparse
-import os
 
 
 def cmdline():
@@ -31,16 +30,6 @@ Features:
     p = argparse.ArgumentParser(description=desc, prog='fll',
             formatter_class=argparse.RawDescriptionHelpFormatter)
 
-    p.add_argument('--build-dir', '-b', default=os.getcwd(), metavar='<DIR>',
-                   help="""\
-Build directory for staging chroot(s), binary and source output. A large
-amount of free space is required. Defaults to the current working
-directory.""")
-
-    p.add_argument('--config', '-c', type=file, metavar='<CONFIG>', 
-                   help="""\
-Configuration file for build.""")
-
     p.add_argument('--apt-fetch-src', '-f', action='store_true',
                    default=False, help="""\
 Fetch source packages for all packages installed in the chroot and organise
@@ -51,13 +40,46 @@ them in an archive. Default: %(default)s""")
 GPG keyserver URI. GPG keys used to secure apt will be fetched from this
 keyserver. Default: wwwkeys.eu.pgp.net""")
 
+    p.add_argument('--architecture', '-a', metavar='<ARCH>', action='append',
+                   help="""\
+Architecture of chroot to build. May be specified multiple times.
+Default: host architecture""")
+
+    p.add_argument('--build-dir', '-b', metavar='<DIR>', help="""\
+Build directory for staging chroot(s), binary and source output. A large
+amount of free space is required.
+Default: current working directory""")
+
+    p.add_argument('--chroot-preserve', action='store_true', default=False,
+                   help="""\
+Preserve chroot filesystem after completion. Default: %(default)s""")
+
+    p.add_argument('--config-file', '-c', type=file, metavar='<CONFIG>', 
+                   help="""\
+Configuration file for build. Default: /etc/fll/fll.conf""")
+
+    p.add_argument('--debug', '-d', action='store_true', default=False,
+                   help="""\
+Print debug data. Default: %(default)s""")
+
+    p.add_argument('--dryrun', '-D', action='store_true', default=False,
+                   help="""\
+Dry run mode. Do not perform time consuming processes.
+Default: %(default)s""")
+
     p.add_argument('--ftp-proxy', metavar='<PROXY>', help="""\
-Sets the ftp_proxy environment variable.""")
+Sets the ftp_proxy environment variable and apt's Acquire::http::Proxy
+configuration item.""")
 
     p.add_argument('--http-proxy', metavar='<PROXY>', help="""\
-Sets the http_proxy environment variable.""")
+Sets the http_proxy environment variable and apt's Acquire::ftp::Proxy
+configuration item.""")
 
-    p.add_argument('--mirror', metavar='<URI>', help="""\
+    p.add_argument('--mirror', '-m', metavar='<URI>', help="""\
 Debian mirror to be used. Default: http://cdn.debian.net/debian/""")
+
+    p.add_argument('--quiet', '-q', action='store_true', default=False,
+                   help="""\
+Print minimal output to stdout. Default: %(default)s""")
 
     return p

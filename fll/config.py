@@ -10,6 +10,7 @@ License:   GPL-2
 from configobj import ConfigObj, ConfigObjError, \
                       flatten_errors, get_extra_values
 from validate import Validator
+import fll.misc
 import os
 import sys
 
@@ -51,10 +52,14 @@ class Config(object):
         self.config = ConfigObj(self.config_file,
                                 configspec=self.config_spec,
                                 interpolation='template')
-        self._validate()
 
-        if cmdline:
-            self._args_override(cmdline)
+        self._process_cmdline(cmdline)
+        self._validate()
+        self._propogate_modes()
+
+        if self.config['debug']:
+            import pprint
+            pprint.pprint(dict(self.config))
 
     def _validate(self):
         result = self.config.validate(Validator(), preserve_errors=True)
@@ -99,8 +104,56 @@ class Config(object):
                               self.config_file)
             raise ConfigError('\n'.join(error_msgs))
 
-    def _args_override(self, args):
-        pass
+    def _process_cmdline(self, args):
+        if args is None:
+            return
+
+        if args.apt_fetch_src:
+            self.config['apt']['fetch_src'] = args.apt_fetch_src
+
+        if args.apt_keyserver:
+            self.config['apt']['keyserver'] = args.apt_keyserver
+
+        if args.architecture:
+            self.config['architecture'] = args.architecture
+        elif 'architecture' not in self.config:
+            ret, arch = fll.misc.cmd('dpkg --print-architecture', pipe=True)
+            self.config['architecture'] = [arch.strip()]
+
+        if args.build_dir:
+            self.config['build_dir'] = args.build_dir
+        elif 'build_dir' not in self.config:
+            self.config['build_dir'] = os.getcwd()
+
+        if args.chroot_preserve:
+            self.config['chroot']['preserve'] = args.chroot_preserve
+
+        if args.debug:
+            self.config['debug'] = args.debug
+
+        if args.dryrun:
+            self.config['dryrun'] = args.dryrun
+
+        if args.ftp_proxy:
+            self.config['ftp_proxy'] = args.ftp_proxy
+
+        if args.http_proxy:
+            self.config['http_proxy'] = args.http_proxy
+
+        if args.mirror:
+            self.config['mirror'] = args.mirror
+
+        if args.quiet:
+            self.config['quiet'] = args.quiet
+
+    def _propogate_modes(self):
+        sections = ['apt', 'chroot']
+        modes = ['quiet', 'debug']
+
+        for mode in modes:
+            if self.config[mode]:
+                for section in sections:
+                    self.config[section][mode] = self.config[mode]
 
     def set_environment(self):
         for k, v in self.config['environment'].iteritems():
@@ -111,14 +164,14 @@ class Config(object):
             os.unsetenv(k)
         os.environ = self.config['environment']
 
-        if 'http_proxy' in self.config:
+        if self.config['http_proxy']:
             os.putenv('http_proxy', self.config['http_proxy'])
-            os.environ['http_proxy'] = self.config['http_proxy']
-            self.config['apt']['conf']['Acquire::http::Proxy'] = \
+            os.environ['http_proxy'] = \
+                self.config['apt']['conf']['Acquire::http::Proxy'] = \
                 self.config['http_proxy']
 
-        if 'ftp_proxy' in self.config:
+        if self.config['ftp_proxy']:
             os.putenv('ftp_proxy', self.config['ftp_proxy'])
-            os.environ['ftp_proxy'] = self.config['ftp_proxy']
-            self.config['apt']['conf']['Acquire::ftp::Proxy'] = \
+            os.environ['ftp_proxy'] = \
+                self.config['apt']['conf']['Acquire::ftp::Proxy'] = \
                 self.config['ftp_proxy']

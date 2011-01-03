@@ -45,33 +45,38 @@ class AptLib(object):
         self.config = config
         self.cache = None
 
+        if self.config['quiet']:
+            self._progress=None
+        else:
+            self._progress=AptLibProgress()
+
     def _init_cache(self):
         """Initialise apt in the chroot."""
+        # Must explicitly set architecture for interacting with chroot of
+        # differing architecture to host. Chroot before invoking dpkg.
+        apt_pkg.config.set('APT::Architecture', self.chroot.architecture)
+        apt_pkg.config.set('Dpkg::Chroot-Directory', self.chroot.rootdir)
+
         self.cache = apt.cache.Cache(rootdir=self.chroot.rootdir)
 
         # Set user configurable preferences.
         for keyword, value in self.config['conf'].iteritems():
             apt_pkg.config.set(keyword, value)
 
-        # Must explicitly set architecture for interacting with chroot of
-        # differing architecture to host. Chroot before invoking dpkg.
-        apt_pkg.config.set('APT::Architecture', self.chroot.architecture)
-        apt_pkg.config.set('Dpkg::Chroot-Directory', self.chroot.rootdir)
-
         # Avoid apt-listchanges / dpkg-preconfigure
         apt_pkg.Config.clear("DPkg::Pre-Install-Pkgs")
 
     def init(self):
-        self.sources_list(fetch_src=self.config['fetch_src'])
+        self.sources_list(final_uri=False, fetch_src=self.config['fetch_src'])
         self._init_cache()
         self.update()
         self.key()
 
     def deinit(self):
-        self.sources_list(fetch_src=False)
+        self.sources_list(final_uri=True, fetch_src=False)
         #self.clean()
 
-    def sources_list(self, fetch_src=False):
+    def sources_list(self, final_uri=False, fetch_src=False):
         """Write apt sources to file(s) in /etc/apt/sources.list.d/*.list.
         Create /etc/apt/sources.list with some boilerplate text about
         the lists in /etc/apt/sources.list.d/."""
@@ -103,7 +108,10 @@ class AptLib(object):
 
         for name, source in self.config['sources'].iteritems():
             description = source.get('description')
-            uri = source.get('uri')
+            if final_uri and source.get('final_uri'):
+                uri = source.get('final_uri')
+            else:
+                uri = source.get('uri')
             suites = source.get('suites')
             components = source.get('components')
 
@@ -176,22 +184,23 @@ class AptLib(object):
 
     def commit(self):
         self.chroot.mountvirtfs()
-        self.cache.commit(fetch_progress=AptLibProgress())
+        self.cache.commit(fetch_progress=self._progress)
         self.chroot.umountvirtfs()
         self.cache.open()
 
     def update(self):
-        self.cache.update(fetch_progress=AptLibProgress())
+        self.cache.update(fetch_progress=self._progress)
         self.cache.open()
 
     def dist_upgrade(self, commit=True):
         self.cache.upgrade(dist_upgrade=True)
 
-        print 'INSTALL %d packages - DELETE %d packages - %sB download - %sB required' % \
-            (self.cache.install_count,
-             self.cache.delete_count,
-             apt_pkg.size_to_str(self.cache.required_download),
-             apt_pkg.size_to_str(self.cache.required_space))
+        if not self.config['quiet']:
+            print 'INSTALL %d DELETE %d GET %sB REQ %sB' % \
+                (self.cache.install_count,
+                 self.cache.delete_count,
+                 apt_pkg.size_to_str(self.cache.required_download),
+                 apt_pkg.size_to_str(self.cache.required_space))
 
         if commit:
             self.commit()
@@ -201,10 +210,11 @@ class AptLib(object):
         for p in packages:
             self.cache[p].mark_install()
 
-        print 'INSTALL %d packages - %sB download - %sB required' % \
-            (self.cache.install_count,
-             apt_pkg.size_to_str(self.cache.required_download),
-             apt_pkg.size_to_str(self.cache.required_space))
+        if not self.config['quiet']:
+            print 'INSTALL %d GET %sB REQ %sB' % \
+                (self.cache.install_count,
+                 apt_pkg.size_to_str(self.cache.required_download),
+                 apt_pkg.size_to_str(self.cache.required_space))
 
         if commit:
             self.commit()

@@ -17,5 +17,21 @@ import sys
 
 def main():
     args = fll.cmdline.cmdline().parse_args()
-    conf = Config(config_file=args.config, cmdline=args)
+    conf = Config(config_file=args.config_file, cmdline=args)
     conf.set_environment()
+
+    for arch in conf.config['architecture']:
+        rootdir = os.path.join(conf.config['build_dir'].rstrip('/'), arch)
+
+        with Chroot(rootdir=rootdir, architecture=arch,
+                    config=conf.config['chroot']) as chroot:
+            chroot.bootstrap()
+            chroot.init()
+
+            apt = AptLib(chroot=chroot, config=conf.config['apt'])
+            apt.init()
+
+            apt.install(['hello'])
+
+            apt.deinit()
+            chroot.deinit()
