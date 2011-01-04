@@ -58,10 +58,6 @@ Preserve chroot filesystem after completion. Default: %(default)s""")
                    help="""\
 Configuration file for build. Default: /etc/fll/fll.conf""")
 
-    p.add_argument('--debug', '-d', action='store_true', default=False,
-                   help="""\
-Print debug data. Default: %(default)s""")
-
     p.add_argument('--dryrun', '-D', action='store_true', default=False,
                    help="""\
 Dry run mode. Do not perform time consuming processes.
@@ -78,8 +74,7 @@ configuration item.""")
     p.add_argument('--mirror', '-m', metavar='<URI>', help="""\
 Debian mirror to be used. Default: http://cdn.debian.net/debian/""")
 
-    p.add_argument('--quiet', '-q', action='store_true', default=False,
-                   help="""\
-Print minimal output to stdout. Default: %(default)s""")
+    p.add_argument('--verbosity', '-v', metavar='<MODE>', help="""\
+Select verbosity level of quiet, verbose or debug. Default: quiet""")
 
     return p

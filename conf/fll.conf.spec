@@ -4,8 +4,7 @@ mirror			= string(min=1, default='http://cdn.debian.net/debian/')
 http_proxy		= string(min=1, default=None)
 ftp_proxy		= string(min=1, default=None)
 dryrun			= boolean(default=False)
-debug			= boolean(default=False)
-quiet			= boolean(default=False)
+verbosity		= option('quiet', 'verbose', 'debug', default='quiet')
 __many__		= string(min=1)
 
 [ 'apt' ]
@@ -13,6 +12,7 @@ fetch_src		= boolean(default=False)
 keyserver		= string(min=1, default='wwwkeys.eu.pgp.net')
 
 quiet			= boolean(default=False)
+verbose			= boolean(default=False)
 debug			= boolean(default=False)
 	
 [[ 'conf' ]]
@@ -38,6 +38,7 @@ components		= string(min=1)
 preserve		= boolean(default=False)
 
 quiet			= boolean(default=False)
+verbose			= boolean(default=False)
 debug			= boolean(default=False)
 
 [[ 'bootstrap' ]]

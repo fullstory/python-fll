@@ -57,7 +57,7 @@ class Config(object):
         self._validate()
         self._propogate_modes()
 
-        if self.config['debug']:
+        if self.config['verbosity'] == 'debug':
             import pprint
             pprint.pprint(dict(self.config))
 
@@ -128,9 +128,6 @@ class Config(object):
         if args.chroot_preserve:
             self.config['chroot']['preserve'] = args.chroot_preserve
 
-        if args.debug:
-            self.config['debug'] = args.debug
-
         if args.dryrun:
             self.config['dryrun'] = args.dryrun
 
@@ -143,17 +140,15 @@ class Config(object):
         if args.mirror:
             self.config['mirror'] = args.mirror
 
-        if args.quiet:
-            self.config['quiet'] = args.quiet
+        if args.verbosity:
+            self.config['verbosity'] = args.verbosity
 
     def _propogate_modes(self):
         sections = ['apt', 'chroot']
-        modes = ['quiet', 'debug']
+        mode = self.config['verbosity']
 
-        for mode in modes:
-            if self.config[mode]:
-                for section in sections:
-                    self.config[section][mode] = self.config[mode]
+        for section in sections:
+            self.config[section][mode] = True
 
     def set_environment(self):
         for k, v in self.config['environment'].iteritems():

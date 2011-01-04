@@ -69,6 +69,9 @@ class Chroot(object):
         if not quiet:
             quiet = self.config['quiet']
         verbose = self.config['bootstrap']['verbose']
+        # default verbosity level is noisy enough imo
+        #if not verbose:
+        #    verbose = self.config['verbose']
         debug = self.config['bootstrap']['debug']
         if not debug:
             debug = self.config['debug']
@@ -144,7 +147,7 @@ class Chroot(object):
         for fname in self.diverts:
             cmd = 'dpkg-divert --add --local --divert ' + fname + '.REAL'
             cmd += ' --rename ' + fname
-            self.cmd(cmd)
+            self.cmd(cmd, silent=self.config['quiet'])
             self.create_file(fname, mode=0755)
 
         debconf = ['man-db man-db/auto-update boolean false']
@@ -163,7 +166,7 @@ class Chroot(object):
         for fname in self.diverts:
             os.unlink(self.chroot_path(fname))
             cmd = 'dpkg-divert --remove --rename ' + fname
-            self.cmd(cmd)
+            self.cmd(cmd, silent=self.config['quiet'])
 
         debconf = ['man-db man-db/auto-update boolean true']
         self.debconf_set_selections(debconf)
@@ -275,12 +278,12 @@ iface lo inet loopback"""
         os.chroot(self.rootdir)
         os.chdir('/')
 
-    def cmd(self, cmd, pipe=False):
+    def cmd(self, cmd, pipe=False, silent=False):
         """Execute a command in the chroot."""
         if isinstance(cmd, str):
             cmd = shlex.split(cmd)
 
-        if not self.config['quiet']:
+        if silent is False:
             print 'CHROOT %s %s' % (self.rootdir, ' '.join(cmd))
 
         devnull = output = None

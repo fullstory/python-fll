@@ -44,11 +44,7 @@ class AptLib(object):
         self.chroot = chroot
         self.config = config
         self.cache = None
-
-        if self.config['quiet']:
-            self._progress=None
-        else:
-            self._progress=AptLibProgress()
+        self._progress = AptLibProgress(quiet=config['quiet'])
 
     def _init_cache(self):
         """Initialise apt in the chroot."""
@@ -195,12 +191,11 @@ class AptLib(object):
     def dist_upgrade(self, commit=True):
         self.cache.upgrade(dist_upgrade=True)
 
-        if not self.config['quiet']:
-            print 'APT INSTALL %d DELETE %d GET %sB REQ %sB' % \
-                (self.cache.install_count,
-                 self.cache.delete_count,
-                 apt_pkg.size_to_str(self.cache.required_download),
-                 apt_pkg.size_to_str(self.cache.required_space))
+        print 'APT INSTALL %d DELETE %d GET %sB REQ %sB' % \
+            (self.cache.install_count,
+             self.cache.delete_count,
+             apt_pkg.size_to_str(self.cache.required_download),
+             apt_pkg.size_to_str(self.cache.required_space))
 
         if commit:
             self.commit()
@@ -210,11 +205,10 @@ class AptLib(object):
         for p in packages:
             self.cache[p].mark_install()
 
-        if not self.config['quiet']:
-            print 'APT INSTALL %d GET %sB REQ %sB' % \
-                (self.cache.install_count,
-                 apt_pkg.size_to_str(self.cache.required_download),
-                 apt_pkg.size_to_str(self.cache.required_space))
+        print 'APT INSTALL %d GET %sB REQ %sB' % \
+            (self.cache.install_count,
+             apt_pkg.size_to_str(self.cache.required_download),
+             apt_pkg.size_to_str(self.cache.required_space))
 
         if commit:
             self.commit()
@@ -234,31 +228,42 @@ class AptLib(object):
 
 class AptLibProgress(apt.progress.base.AcquireProgress):
     """Progress report for apt."""
-    _time = None
+    def __init__(self, quiet=False):
+        apt.progress.base.AcquireProgress.__init__(self)
+        self._quiet = quiet
+        self._time = None
 
     def fail(self, item):
+        apt.progress.base.AcquireProgress.fail(self, item)
         if item.owner.status == item.owner.STAT_DONE:
             line = 'APT IGN ' + item.description
         else:
             line = 'APT ERR %s [%s]' % (item.description, item.owner.error_text)
-        print line
+        if self._quiet is False:
+            print line
 
     def ims_hit(self, item):
+        apt.progress.base.AcquireProgress.ims_hit(self, item)
         line = 'APT HIT ' + item.description
         if item.owner.filesize:
             line += ' [%sB]' % apt_pkg.size_to_str(item.owner.filesize)
-        print line
+        if self._quiet is False:
+            print line
 
     def fetch(self, item):
+        apt.progress.base.AcquireProgress.fetch(self, item)
         line = 'APT GET ' + item.description
         if item.owner.filesize:
             line += ' [%sB]' % apt_pkg.size_to_str(item.owner.filesize)
-        print line
+        if self._quiet is False:
+            print line
 
     def start(self):
+        apt.progress.base.AcquireProgress.start(self)
         self._time = datetime.datetime.utcnow()
 
     def stop(self):
+        apt.progress.base.AcquireProgress.stop(self)
         duration = datetime.datetime.utcnow() - self._time
 
         if self.total_items == 0:
