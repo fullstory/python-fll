@@ -179,12 +179,14 @@ class AptLib(object):
             self.install(keyrings)
 
     def commit(self):
+        print 'APT COMMIT'
         self.chroot.mountvirtfs()
         self.cache.commit(fetch_progress=self._progress)
         self.chroot.umountvirtfs()
         self.cache.open()
 
     def update(self):
+        print 'APT UPDATE'
         self.cache.update(fetch_progress=self._progress)
         self.cache.open()
 
