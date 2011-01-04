@@ -12,6 +12,8 @@ def cmd(cmd, pipe=False):
     if isinstance(cmd, str):
         cmd = shlex.split(cmd)
 
+    print 'HOST %s' % ' '.join(cmd)
+
     if pipe:
         proc = subprocess.Popen(cmd, preexec_fn=restore_sigpipe,
                                 stdout=subprocess.PIPE)
