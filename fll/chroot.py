@@ -108,18 +108,16 @@ class Chroot(object):
         cmd.append(self.rootdir)
         cmd.append(uri)
 
-        if not quiet:
-            print ' '.join(cmd)
-
         try:
             fll.misc.cmd(cmd)
         except OSError:
-            raise ChrootError('bootstrap command failed')
+            raise ChrootError('bootstrap command failed: %s' % ' '.join(cmd))
 
         # Some flavours use cdebootstrap-helper-rc.d, some don't. We'll
         # impliment our our own policy-rc.d for consistency.
         if utility == 'cdebootstrap':
-            self.cmd('dpkg --purge cdebootstrap-helper-rc.d'.split())
+            self.cmd('dpkg --purge cdebootstrap-helper-rc.d'.split(),
+                     silent=self.config['quiet'])
 
     def debconf_set_selections(self, selections):
         dss = '/usr/bin/debconf-set-selections'
@@ -171,7 +169,8 @@ class Chroot(object):
         debconf = ['man-db man-db/auto-update boolean true']
         self.debconf_set_selections(debconf)
         if os.path.exists(self.chroot_path('/usr/bin/mandb')):
-            self.cmd('/usr/bin/mandb --create --quiet')
+            self.cmd('/usr/bin/mandb --create --quiet',
+                     silent=self.config['quiet'])
 
     def chroot_path(self, path):
         return os.path.join(self.rootdir, path.lstrip('/'))
@@ -278,7 +277,7 @@ iface lo inet loopback"""
         os.chroot(self.rootdir)
         os.chdir('/')
 
-    def cmd(self, cmd, pipe=False, silent=False):
+    def cmd(self, cmd, pipe=False, quiet=False, silent=False):
         """Execute a command in the chroot."""
         if isinstance(cmd, str):
             cmd = shlex.split(cmd)
@@ -288,13 +287,16 @@ iface lo inet loopback"""
 
         devnull = output = None
 
+        if quiet is False:
+            quiet = self.config['quiet']
+
         self.mountvirtfs()
         try:
             if pipe:
                 proc = subprocess.Popen(cmd, preexec_fn=self._chroot, cwd='/',
                                         stdout=subprocess.PIPE)
                 output = proc.communicate()[0]
-            elif self.config['quiet']:
+            elif quiet or silent:
                 devnull = os.open(os.devnull, os.O_RDWR)
                 proc = subprocess.Popen(cmd, preexec_fn=self._chroot, cwd='/',
                                         stdout=devnull)
@@ -314,6 +316,4 @@ iface lo inet loopback"""
                               (proc.returncode, ' '.join(cmd)))
 
         if pipe:
-            return proc.returncode, output
-        else:
-            return proc.returncode
+            return output

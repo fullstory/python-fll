@@ -117,7 +117,8 @@ class Config(object):
         if args.architecture:
             self.config['architecture'] = args.architecture
         elif 'architecture' not in self.config:
-            ret, arch = fll.misc.cmd('dpkg --print-architecture', pipe=True)
+            arch = fll.misc.cmd('dpkg --print-architecture', pipe=True,
+                                silent=True)
             self.config['architecture'] = [arch.strip()]
 
         if args.build_dir:
