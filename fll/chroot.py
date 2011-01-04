@@ -109,8 +109,8 @@ class Chroot(object):
             print ' '.join(cmd)
 
         try:
-            subprocess.check_call(cmd, preexec_fn=fll.misc.restore_sigpipe)
-        except (subprocess.CalledProcessError, OSError):
+            fll.misc.cmd(cmd)
+        except OSError:
             raise ChrootError('bootstrap command failed')
 
         # Some flavours use cdebootstrap-helper-rc.d, some don't. We'll
