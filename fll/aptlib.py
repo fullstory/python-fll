@@ -196,7 +196,7 @@ class AptLib(object):
         self.cache.upgrade(dist_upgrade=True)
 
         if not self.config['quiet']:
-            print 'INSTALL %d DELETE %d GET %sB REQ %sB' % \
+            print 'APT INSTALL %d DELETE %d GET %sB REQ %sB' % \
                 (self.cache.install_count,
                  self.cache.delete_count,
                  apt_pkg.size_to_str(self.cache.required_download),
@@ -211,7 +211,7 @@ class AptLib(object):
             self.cache[p].mark_install()
 
         if not self.config['quiet']:
-            print 'INSTALL %d GET %sB REQ %sB' % \
+            print 'APT INSTALL %d GET %sB REQ %sB' % \
                 (self.cache.install_count,
                  apt_pkg.size_to_str(self.cache.required_download),
                  apt_pkg.size_to_str(self.cache.required_space))
@@ -238,19 +238,19 @@ class AptLibProgress(apt.progress.base.AcquireProgress):
 
     def fail(self, item):
         if item.owner.status == item.owner.STAT_DONE:
-            line = 'IGN ' + item.description
+            line = 'APT IGN ' + item.description
         else:
-            line = 'ERR %s [%s]' % (item.description, item.owner.error_text)
+            line = 'APT ERR %s [%s]' % (item.description, item.owner.error_text)
         print line
 
     def ims_hit(self, item):
-        line = 'HIT ' + item.description
+        line = 'APT HIT ' + item.description
         if item.owner.filesize:
             line += ' [%sB]' % apt_pkg.size_to_str(item.owner.filesize)
         print line
 
     def fetch(self, item):
-        line = 'GET ' + item.description
+        line = 'APT GET ' + item.description
         if item.owner.filesize:
             line += ' [%sB]' % apt_pkg.size_to_str(item.owner.filesize)
         print line
@@ -264,7 +264,7 @@ class AptLibProgress(apt.progress.base.AcquireProgress):
         if self.total_items == 0:
             return
 
-        line = 'GOT %s items' % self.total_items
+        line = 'APT GOT %s items' % self.total_items
         if duration.seconds >= 60:
             line += ' in %dm:%02ds' % divmod(duration.seconds, 60)
         else:
