@@ -74,7 +74,19 @@ configuration item.""")
     p.add_argument('--mirror', '-m', metavar='<URI>', help="""\
 Debian mirror to be used. Default: http://cdn.debian.net/debian/""")
 
-    p.add_argument('--verbosity', '-v', metavar='<MODE>', help="""\
-Select verbosity level of quiet, verbose or debug. Default: quiet""")
+    modes = p.add_mutually_exclusive_group()
+    modes.add_argument('--verbosity', metavar='<MODE>', help="""\
+Select verbosity mode of quiet, verbose or debug. Default: quiet""")
+
+    modes.add_argument('--quiet', '-q', action='store_true', default=False,
+                       help="""\
+Select quiet verbosity mode.""")
+    modes.add_argument('--verbose', '-v', action='store_true', default=False,
+                       help="""\
+Select verbose verbosity mode.""")
+    modes.add_argument('--debug', '-d', action='store_true', default=False,
+                       help="""\
+Select debug verbosity mode.""")
+
 
     return p

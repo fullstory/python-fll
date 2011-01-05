@@ -143,6 +143,12 @@ class Config(object):
 
         if args.verbosity:
             self.config['verbosity'] = args.verbosity
+        elif args.quiet:
+            self.config['verbosity'] = 'quiet'
+        elif args.verbose:
+            self.config['verbosity'] = 'verbose'
+        elif args.debug:
+            self.config['verbosity'] = 'debug'
 
     def _propogate_modes(self):
         sections = ['apt', 'chroot']
