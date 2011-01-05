@@ -30,10 +30,10 @@ Features:
     p = argparse.ArgumentParser(description=desc, prog='fll',
             formatter_class=argparse.RawDescriptionHelpFormatter)
 
-    p.add_argument('--architecture', '-a', metavar='<ARCH>', action='append',
+    p.add_argument('--architecture', '-a', metavar='<ARCH>', nargs='+',
                    help="""\
-Architecture of chroot to build. May be specified multiple times.
-Default: host architecture""")
+Architecture of chroot to build. Multiple architectures can be specified,
+separarted by whitespace. Default: host architecture""")
 
     p.add_argument('--build-dir', '-b', metavar='<DIR>', help="""\
 Build directory for staging chroot(s), binary and source output. A large
