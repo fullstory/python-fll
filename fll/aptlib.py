@@ -183,11 +183,15 @@ class AptLib(object):
         self.chroot.mountvirtfs()
         self.cache.commit(fetch_progress=self._progress)
         self.chroot.umountvirtfs()
-        self.cache.open()
+        self.open()
 
     def update(self):
         print 'APT UPDATE'
         self.cache.update(fetch_progress=self._progress)
+        self.open()
+
+    def open(self):
+        print 'APT CACHE'
         self.cache.open()
 
     def dist_upgrade(self, commit=True):
