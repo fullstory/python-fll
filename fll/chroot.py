@@ -262,6 +262,8 @@ iface lo inet loopback"""
     def nuke(self):
         """Remove the chroot from filesystem. All mount points in chroot
         will be umounted prior to attempted removal."""
+        print 'HOST nuke(%s)' % self.rootdir
+
         self.umountvirtfs()
 
         try:
