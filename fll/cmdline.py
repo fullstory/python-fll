@@ -32,12 +32,12 @@ Features:
 
     p.add_argument('--architecture', '-a', metavar='<ARCH>', nargs='+',
                    help="""\
-Architecture of chroot to build. Multiple architectures can be specified,
-separarted by whitespace. Default: host architecture""")
+Architecture(s) of chroot filesystem(s) to build. Multiple architectures
+can be specified separarted by whitespace. Default: host architecture""")
 
     p.add_argument('--build-dir', '-b', metavar='<DIR>', help="""\
-Build directory for staging chroot(s), binary and source output. A large
-amount of free space is required.
+Build directory for staging chroot filesystem(s) and resulting output.
+A very large amount of free space is required.
 Default: current working directory""")
 
     p.add_argument('--config-file', '-c', type=file, metavar='<CONFIG>', 
@@ -63,7 +63,7 @@ Debian mirror to be used. Default: http://cdn.debian.net/debian/""")
 Preserve chroot filesystem after completion. Default: %(default)s""")
 
     p.add_argument('--source', '-s', action='store_true', help="""\
-Fetch and build source archive of software included in chroot filesystems.
+Fetch and build source archive of software included in chroot filesystem(s).
 Default: %(default)s""")
     
     modes = p.add_mutually_exclusive_group()
@@ -74,9 +74,11 @@ Select verbosity mode of quiet, verbose or debug. Default: quiet""")
     modes.add_argument('--quiet', '-q', action='store_true', default=False,
                        help="""\
 Select quiet verbosity mode.""")
+
     modes.add_argument('--verbose', '-v', action='store_true', default=False,
                        help="""\
 Select verbose verbosity mode.""")
+
     modes.add_argument('--debug', '-d', action='store_true', default=False,
                        help="""\
 Select debug verbosity mode.""")
