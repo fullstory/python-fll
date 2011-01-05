@@ -125,11 +125,17 @@ class Chroot(object):
         if not os.path.exists(self.chroot_path(dss)):
             return
 
-        with tempfile.NamedTemporaryFile(dir=self.rootdir) as fh:
+        cmd = [dss]
+        if self.config['quiet'] is False:
+            cmd.append('--verbose')
+
+        with tempfile.NamedTemporaryFile(dir=self.rootdir, prefix='debconf_') \
+             as fh:
             for line in selections:
                 print >>fh, line
             fh.flush()
-            self.cmd([dss, self.chroot_path_rel(fh.name)])
+            cmd.append(self.chroot_path_rel(fh.name))
+            self.cmd(cmd)
 
     def init(self):
         """Configure the basics to get a functioning chroot."""
@@ -169,7 +175,10 @@ class Chroot(object):
         debconf = ['man-db man-db/auto-update boolean true']
         self.debconf_set_selections(debconf)
         if os.path.exists(self.chroot_path('/usr/bin/mandb')):
-            self.cmd('/usr/bin/mandb --create --quiet')
+            cmd = ['/usr/bin/mandb', '--create']
+            if self.config['quiet']:
+                cmd.append('--quiet')
+            self.cmd(cmd)
 
     def chroot_path(self, path):
         return os.path.join(self.rootdir, path.lstrip('/'))
