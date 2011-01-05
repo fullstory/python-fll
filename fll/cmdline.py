@@ -30,16 +30,6 @@ Features:
     p = argparse.ArgumentParser(description=desc, prog='fll',
             formatter_class=argparse.RawDescriptionHelpFormatter)
 
-    p.add_argument('--apt-fetch-src', '-f', action='store_true',
-                   default=False, help="""\
-Fetch source packages for all packages installed in the chroot and organise
-them in an archive. Default: %(default)s""")
-
-    p.add_argument('--apt-keyserver', '-k', metavar='<SERVER>',
-                   help="""\
-GPG keyserver URI. GPG keys used to secure apt will be fetched from this
-keyserver. Default: wwwkeys.eu.pgp.net""")
-
     p.add_argument('--architecture', '-a', metavar='<ARCH>', action='append',
                    help="""\
 Architecture of chroot to build. May be specified multiple times.
@@ -50,30 +40,32 @@ Build directory for staging chroot(s), binary and source output. A large
 amount of free space is required.
 Default: current working directory""")
 
-    p.add_argument('--chroot-preserve', action='store_true', default=False,
-                   help="""\
-Preserve chroot filesystem after completion. Default: %(default)s""")
-
     p.add_argument('--config-file', '-c', type=file, metavar='<CONFIG>', 
                    help="""\
 Configuration file for build. Default: /etc/fll/fll.conf""")
 
-    p.add_argument('--dryrun', '-D', action='store_true', default=False,
-                   help="""\
+    p.add_argument('--dryrun', '-D', action='store_true', help="""\
 Dry run mode. Do not perform time consuming processes.
 Default: %(default)s""")
 
-    p.add_argument('--ftp-proxy', metavar='<PROXY>', help="""\
+    p.add_argument('--ftp-proxy', '-F', metavar='<PROXY>', help="""\
 Sets the ftp_proxy environment variable and apt's Acquire::http::Proxy
 configuration item.""")
 
-    p.add_argument('--http-proxy', metavar='<PROXY>', help="""\
+    p.add_argument('--http-proxy', '-H', metavar='<PROXY>', help="""\
 Sets the http_proxy environment variable and apt's Acquire::ftp::Proxy
 configuration item.""")
 
     p.add_argument('--mirror', '-m', metavar='<URI>', help="""\
 Debian mirror to be used. Default: http://cdn.debian.net/debian/""")
 
+    p.add_argument('--preserve-chroot', '-P', action='store_true', help="""\
+Preserve chroot filesystem after completion. Default: %(default)s""")
+
+    p.add_argument('--source', '-s', action='store_true', help="""\
+Fetch and build source archive of software included in chroot filesystems.
+Default: %(default)s""")
+    
     modes = p.add_mutually_exclusive_group()
     modes.add_argument('--verbosity', metavar='<MODE>', 
                        choices=['quiet', 'verbose', 'debug'], help="""\
@@ -88,6 +80,5 @@ Select verbose verbosity mode.""")
     modes.add_argument('--debug', '-d', action='store_true', default=False,
                        help="""\
 Select debug verbosity mode.""")
-
 
     return p

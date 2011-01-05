@@ -108,12 +108,6 @@ class Config(object):
         if args is None:
             return
 
-        if args.apt_fetch_src:
-            self.config['apt']['fetch_src'] = args.apt_fetch_src
-
-        if args.apt_keyserver:
-            self.config['apt']['keyserver'] = args.apt_keyserver
-
         if args.architecture:
             self.config['architecture'] = args.architecture
         elif 'architecture' not in self.config:
@@ -126,9 +120,6 @@ class Config(object):
         elif 'build_dir' not in self.config:
             self.config['build_dir'] = os.getcwd()
 
-        if args.chroot_preserve:
-            self.config['chroot']['preserve'] = args.chroot_preserve
-
         if args.dryrun:
             self.config['dryrun'] = args.dryrun
 
@@ -140,6 +131,12 @@ class Config(object):
 
         if args.mirror:
             self.config['mirror'] = args.mirror
+
+        if args.preserve_chroot:
+            self.config['chroot']['preserve'] = args.preserve_chroot
+
+        if args.source:
+            self.config['apt']['fetch_src'] = args.source
 
         if args.verbosity:
             self.config['verbosity'] = args.verbosity
