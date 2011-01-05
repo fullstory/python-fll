@@ -113,7 +113,7 @@ class build_manpage(Command):
             line = line.replace('[', ' [ ')
             line = line.replace(']', ' ] ')
             for word in line.split():
-                if word == '[' or word == ']':
+                if word in ['[', ']', '|']:
                     fh.write('\n%s' % word)
                 elif word.startswith('-'):
                     fh.write('\n.BI %s' % markup(word))
