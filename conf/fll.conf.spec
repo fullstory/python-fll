@@ -9,6 +9,7 @@ __many__	= string(min=1)
 
 [apt]
 fetch_src	= boolean(default=False)
+secure		= boolean(default=True)
 keyserver	= string(min=1, default='wwwkeys.eu.pgp.net')
 
 quiet		= boolean(default=False)

@@ -56,6 +56,9 @@ configuration item.""")
 Sets the http_proxy environment variable and apt's Acquire::ftp::Proxy
 configuration item.""")
 
+    p.add_argument('--insecure', '-i', action='store_true', help="""\
+Do not do trust verification of apt's sources.""")
+
     p.add_argument('--mirror', '-m', metavar='<URI>', help="""\
 Debian mirror to be used. Default: http://cdn.debian.net/debian/""")
 
@@ -64,7 +67,7 @@ Preserve chroot filesystem after completion. Default: %(default)s""")
 
     p.add_argument('--source', '-s', action='store_true', help="""\
 Fetch and build source archive of software included in chroot filesystem(s).
-Default: %(default)s""")
+Default: False""")
     
     modes = p.add_mutually_exclusive_group()
     modes.add_argument('--verbosity', metavar='<MODE>', 

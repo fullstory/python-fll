@@ -135,6 +135,9 @@ class Config(object):
         if args.preserve_chroot:
             self.config['chroot']['preserve'] = args.preserve_chroot
 
+        if args.insecure:
+            self.config['apt']['secure'] = False
+
         if args.source:
             self.config['apt']['fetch_src'] = args.source
 
