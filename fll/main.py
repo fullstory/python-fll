@@ -31,7 +31,10 @@ def main():
             apt = AptLib(chroot=chroot, config=conf.config['apt'])
             apt.init()
 
-            apt.install(['man-db'])
+            apt.install(['man-db'], commit=False)
+            for change in apt.changes():
+                print change
+            apt.commit()
 
             apt.deinit()
             chroot.deinit()

@@ -181,7 +181,12 @@ class AptLib(object):
             self.install(keyrings)
 
     def commit(self):
-        print 'APT COMMIT'
+        print 'APT COMMIT INSTALL %d DELETE %d GET %sB REQ %sB' % \
+            (self.cache.install_count,
+             self.cache.delete_count,
+             apt_pkg.size_to_str(self.cache.required_download),
+             apt_pkg.size_to_str(self.cache.required_space))
+
         self.chroot.mountvirtfs()
         self.cache.commit(fetch_progress=self._progress)
         self.chroot.umountvirtfs()
@@ -199,12 +204,6 @@ class AptLib(object):
     def dist_upgrade(self, commit=True):
         self.cache.upgrade(dist_upgrade=True)
 
-        print 'APT INSTALL %d DELETE %d GET %sB REQ %sB' % \
-            (self.cache.install_count,
-             self.cache.delete_count,
-             apt_pkg.size_to_str(self.cache.required_download),
-             apt_pkg.size_to_str(self.cache.required_space))
-
         if commit:
             self.commit()
 
@@ -212,11 +211,6 @@ class AptLib(object):
         #with self.cache.actiongroup(): # segfaults
         for p in packages:
             self.cache[p].mark_install()
-
-        print 'APT INSTALL %d GET %sB REQ %sB' % \
-            (self.cache.install_count,
-             apt_pkg.size_to_str(self.cache.required_download),
-             apt_pkg.size_to_str(self.cache.required_space))
 
         if commit:
             self.commit()
@@ -228,10 +222,14 @@ class AptLib(object):
         if commit:
             self.commit()
 
+    def changes(self):
+        for pkg in self.cache.get_changes():
+            yield pkg
+
     def installed(self):
-        for p in sorted(self.cache.keys()):
-            if self.cache[p].is_installed:
-                yield self.cache[p]
+        for pkg in self.cache:
+            if pkg.is_installed:
+                yield pkg
 
 
 class AptLibProgress(apt.progress.base.AcquireProgress):
