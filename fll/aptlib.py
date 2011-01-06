@@ -67,6 +67,7 @@ class AptLib(object):
         self._init_cache()
         self.update()
         self.key()
+        self.update()
 
     def deinit(self):
         self.sources_list(final_uri=True, fetch_src=False)
