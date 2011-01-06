@@ -21,7 +21,7 @@ def main():
     conf.set_environment()
 
     for arch in conf.config['architecture']:
-        rootdir = os.path.join(conf.config['build_dir'].rstrip('/'), arch)
+        rootdir = os.path.join(conf.config['build_dir'], arch)
 
         with Chroot(rootdir=rootdir, architecture=arch,
                     config=conf.config['chroot']) as chroot:
