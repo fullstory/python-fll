@@ -10,7 +10,7 @@ License:   GPL-2
 from configobj import ConfigObj, ConfigObjError, \
                       flatten_errors, get_extra_values
 from validate import Validator
-import fll.misc
+import fll.cmdline
 import os
 import sys
 
@@ -31,31 +31,32 @@ class Config(object):
     config_file - (str)       pathname to config file
     cmdline     - (Namespace) an argparse Namespace object
     """
-    def __init__(self, config_file=None, cmdline=None):
-        if config_file is None:
+    def __init__(self):
+        self.config_file = fll.cmdline.get_config_file()
+        if self.config_file is None:
             if os.path.isfile('conf/fll.conf'):
                 self.config_file = os.path.realpath('conf/fll.conf')
+            elif os.path.isfile('/etc/fll/fll.conf'):
+                self.config_file = '/etc/fll/fll.conf'
             else:
-                self.config_file = os.path.realpath('/etc/fll/fll.conf')
-        elif isinstance(config_file, file):
-            self.config_file = os.path.realpath(config_file.name)
-        elif os.path.isfile(config_file):
-            self.config_file = os.path.realpath(config_file)
-        else:
-            raise ConfigError('%s does not exist' % config_file)
+                raise ConfigError('no configuration file specified')
 
         if os.path.isfile('conf/fll.conf.spec'):
             self.config_spec = os.path.realpath('conf/fll.conf.spec')
         else:
             self.config_spec = '/usr/share/fll/fll.conf.spec'
 
-        self.config = ConfigObj(self.config_file,
-                                configspec=self.config_spec,
+        self.config = ConfigObj(self.config_file, configspec=self.config_spec,
                                 interpolation='template')
 
-        self._process_cmdline(cmdline)
-        self._validate()
+        # These sections of the configuration accept command line and mode
+        # options and are used by _process_cmdline() and _propogate_modes()
+        self._option_sections = ['apt', 'chroot']
+
+        self._process_cmdline()
         self._propogate_modes()
+        self._validate()
+        self._set_environment()
 
         if self.config['verbosity'] == 'debug':
             import pprint
@@ -104,62 +105,38 @@ class Config(object):
                               self.config_file)
             raise ConfigError('\n'.join(error_msgs))
 
-    def _process_cmdline(self, args):
-        if args is None:
-            return
+    def _process_cmdline(self):
+        args = fll.cmdline.cmdline().parse_args()
 
-        if args.architecture:
-            self.config['architecture'] = args.architecture
-        elif 'architecture' not in self.config:
-            arch = fll.misc.cmd('dpkg --print-architecture', pipe=True,
-                                silent=True)
-            self.config['architecture'] = [arch.strip()]
+        for key, value in args.__dict__.iteritems():
+            if value in [None, False]:
+                continue
+            if isinstance(value, file):
+                continue
 
-        if args.build_dir:
-            self.config['build_dir'] = args.build_dir
-        elif 'build_dir' not in self.config:
-            self.config['build_dir'] = os.getcwd()
-
-        if args.dryrun:
-            self.config['dryrun'] = args.dryrun
-
-        if args.ftp_proxy:
-            self.config['ftp_proxy'] = args.ftp_proxy
-
-        if args.http_proxy:
-            self.config['http_proxy'] = args.http_proxy
-
-        if args.mirror:
-            self.config['mirror'] = args.mirror
-
-        if args.preserve_chroot:
-            self.config['chroot']['preserve'] = args.preserve_chroot
-
-        if args.insecure:
-            self.config['apt']['secure'] = False
-
-        if args.source:
-            self.config['apt']['fetch_src'] = args.source
-
-        if args.verbosity:
-            self.config['verbosity'] = args.verbosity
-        elif args.quiet:
-            self.config['verbosity'] = 'quiet'
-        elif args.verbose:
-            self.config['verbosity'] = 'verbose'
-        elif args.debug:
-            self.config['verbosity'] = 'debug'
+            keys = key.split('_', 1)
+            if len(keys) >= 1 and keys[0] in self._option_sections:
+                section, key = keys
+                if section in self.config:
+                    self.config[section][key] = value
+                else:
+                    self.config[section] = {key: value}
+            else:
+                self.config[key] = value
 
     def _propogate_modes(self):
-        sections = ['apt', 'chroot']
         mode = self.config['verbosity']
 
-        for section in sections:
-            self.config[section][mode] = True
+        for section in self._option_sections:
+            if section in self.config:
+                self.config[section][mode] = True
+            else:
+                self.config[section] = {mode: True}
 
-    def set_environment(self):
+    def _set_environment(self):
         for k, v in self.config['environment'].iteritems():
             os.putenv(k, v)
+
         for k in os.environ.iterkeys():
             if k in self.config['environment']:
                 continue

@@ -9,7 +9,7 @@ __many__	= string(min=1)
 
 [apt]
 fetch_src	= boolean(default=False)
-secure		= boolean(default=True)
+insecure	= boolean(default=False)
 keyserver	= string(min=1, default='wwwkeys.eu.pgp.net')
 
 quiet		= boolean(default=False)
@@ -44,7 +44,7 @@ debug		= boolean(default=False)
 
 [[bootstrap]]
 utility		= option('cdebootstrap', 'debootstrap', default='cdebootstrap')
-suite		= string(min=1, default='sid')
+suite		= option('stable', 'testing', 'unstable', default='unstable')
 uri		= string(min=1, default='$mirror')
 flavour		= option('minimal', 'build', 'standard', default='minimal')
 include		= string(min=1, default=None)

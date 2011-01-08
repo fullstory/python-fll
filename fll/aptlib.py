@@ -66,7 +66,7 @@ class AptLib(object):
         self.sources_list(final_uri=False, fetch_src=self.config['fetch_src'])
         self._init_cache()
         self.update()
-        if self.config['secure'] is True:
+        if self.config['insecure'] is False:
             self.key()
             self.update()
 

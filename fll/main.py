@@ -9,16 +9,13 @@ License:   GPL-2
 from fll.aptlib import AptLib, AptLibError, AptLibProgress
 from fll.chroot import Chroot, ChrootError
 from fll.config import Config, ConfigError
-import fll.cmdline
 
 import os
 import sys
 
 
 def main():
-    args = fll.cmdline.cmdline().parse_args()
-    conf = Config(config_file=args.config_file, cmdline=args)
-    conf.set_environment()
+    conf = Config()
 
     for arch in conf.config['architecture']:
         rootdir = os.path.join(conf.config['build_dir'], arch)
