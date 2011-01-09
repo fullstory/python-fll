@@ -8,6 +8,7 @@ License:   GPL-2
 """
 
 from contextlib import nested
+from tempfile import NamedTemporaryFile
 
 import apt.cache
 import apt.package
@@ -16,7 +17,6 @@ import datetime
 import os
 import shutil
 import subprocess
-import tempfile
 
 
 class AptLibError(Exception):
@@ -156,7 +156,7 @@ class AptLib(object):
 
         for key in gpgkeys:
             if os.path.isfile(key):
-                with nested(tempfile.NamedTemporaryFile(dir=self.chroot.rootdir),
+                with nested(NamedTemporaryFile(dir=self.chroot.rootdir),
                             file(key)) as (fdst, fsrc):
                     shutil.copyfileobj(fsrc, fdst)
                     fdst.flush()
@@ -194,7 +194,9 @@ class AptLib(object):
             raise AptLibError('apt failed to fetch required archives')
         except SystemError, e:
             raise AptLibError('apt encountered an error: %s' % e)
-        self.chroot.umountvirtfs()
+        finally:
+            self.chroot.umountvirtfs()
+
         self.open()
 
     def update(self):
