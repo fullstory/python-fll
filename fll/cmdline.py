@@ -45,7 +45,7 @@ Default: False""")
     p.add_argument('--apt-insecure', '-i', action='store_true', help="""\
 Do not do trust verification of apt's sources.""")
 
-    p.add_argument('--apt-keyserver', '-K', help="""\
+    p.add_argument('--apt-keyserver', '-K', metavar='<KEYSERVER>', help="""\
 GPG Keyserver to fetch pubkeys from when securing apt.
 Default: wwwkeys.eu.pgp.net""")
 
