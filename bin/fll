@@ -5,4 +5,8 @@ sys.path[0] = '.'
 from fll.main import main
 
 if __name__ == '__main__':
-    main()
+    try:
+        main()
+    except KeyboardInterrupt:
+        print >>sys.stderr, 'E: fll was interrupted'
+        sys.exit(1)

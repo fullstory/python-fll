@@ -13,25 +13,34 @@ from fll.config import Config, ConfigError
 import os
 import sys
 
+def error(msg):
+    print >>sys.stderr, 'E: fll - %s' % msg
+    sys.exit(1)
 
 def main():
-    conf = Config()
+    try:
+        conf = Config()
+    except (ConfigError, IOError), e:
+        error(e)
 
     for arch in conf.config['architecture']:
         rootdir = os.path.join(conf.config['build_dir'], arch)
 
-        with Chroot(rootdir=rootdir, architecture=arch,
-                    config=conf.config['chroot']) as chroot:
-            chroot.bootstrap()
-            chroot.init()
+        try:
+            with Chroot(rootdir=rootdir, architecture=arch,
+                        config=conf.config['chroot']) as chroot:
+                chroot.bootstrap()
+                chroot.init()
 
-            apt = AptLib(chroot=chroot, config=conf.config['apt'])
-            apt.init()
+                apt = AptLib(chroot=chroot, config=conf.config['apt'])
+                apt.init()
 
-            apt.install(['man-db'], commit=False)
-            for change in apt.changes():
-                print change
-            apt.commit()
+                apt.install(['man-db'], commit=False)
+                for change in apt.changes():
+                    print change
+                apt.commit()
 
-            apt.deinit()
-            chroot.deinit()
+                apt.deinit()
+                chroot.deinit()
+        except (AptLibError, ChrootError), e:
+            error(e)

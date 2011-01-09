@@ -188,13 +188,21 @@ class AptLib(object):
              apt_pkg.size_to_str(self.cache.required_space))
 
         self.chroot.mountvirtfs()
-        self.cache.commit(fetch_progress=self._progress)
+        try:
+            self.cache.commit(fetch_progress=self._progress)
+        except apt.cache.FetchFailedException, e:
+            raise AptLibError('apt failed to fetch required archives')
+        except SystemError, e:
+            raise AptLibError('apt encountered an error: %s' % e)
         self.chroot.umountvirtfs()
         self.open()
 
     def update(self):
         print 'APT UPDATE'
-        self.cache.update(fetch_progress=self._progress)
+        try:
+            self.cache.update(fetch_progress=self._progress)
+        except apt.cache.FetchFailedException, e:
+            raise AptLibError('apt failed to fetch required archives')
         self.open()
 
     def open(self):
