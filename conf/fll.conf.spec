@@ -1,6 +1,7 @@
 archs		= list()
 build		= string(min=1, default=None)
 mirror		= string(min=1, default='http://cdn.debian.net/debian/')
+codename	= string(min=1, default='sid')
 http		= string(min=1, default=None)
 ftp		= string(min=1, default=None)
 dryrun		= boolean(default=False)
@@ -27,7 +28,7 @@ __many__	= string(min=1)
 description	= string(min=1, default='Debian GNU/Linux')
 uri		= string(min=1, default='$mirror')
 final_uri	= string(min=1, default=None)
-suites		= string(min=1, default='sid')
+suites		= string(min=1, default='$codename')
 components	= string(min=1, default='main')
 
 [[[__many__]]]
@@ -46,7 +47,7 @@ debug		= boolean(default=False)
 
 [[bootstrap]]
 utility		= option('cdebootstrap', 'debootstrap', default='cdebootstrap')
-suite		= option('stable', 'testing', 'unstable', default='unstable')
+suite		= string(min=1, default='$codename')
 uri		= string(min=1, default='$mirror')
 flavour		= option('minimal', 'build', 'standard', default='minimal')
 include		= string(min=1, default=None)

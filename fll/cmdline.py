@@ -30,80 +30,121 @@ Features:
     p = argparse.ArgumentParser(description=desc, prog='fll',
                                 formatter_class=formatter)
 
-    p.add_argument('--apt-src', '--src', '-S', action='store_true',
+    p.add_argument('--src', '-S',
+                   dest='apt_src',
+                   action='store_true',
                    help="""\
 Fetch and build source archive of software included in chroot filesystem(s).
 Default: False""")
 
-    p.add_argument('--apt-key-disable', '--disable-apt-key', '-A',
+    p.add_argument('--noaptkey', '-X',
+                   dest='apt_key_disable',
                    action='store_true',
                    help="""\
 Do not do trust verification of apt's sources.""")
 
-    p.add_argument('--apt-key-server', '--keyserver', metavar='<KEYSERVER>',
+    p.add_argument('--keyserver', '-K',
+                   dest='apt_key_server',
+                   metavar='<KEYSERVER>',
                    help="""\
 GPG Keyserver to fetch pubkeys from when securing apt.
 Default: wwwkeys.eu.pgp.net""")
 
-    p.add_argument('--archs', '-a', metavar='<ARCH>', nargs='+',
+    p.add_argument('--archs', '-a',
+                   metavar='<ARCH>',
+                   nargs='+',
                    help="""\
 Architecture(s) of chroot filesystem(s) to build. Multiple architectures
 can be specified separarted by whitespace. Default: host architecture""")
 
-    p.add_argument('--build', '-b', metavar='<DIR>',
+    p.add_argument('--build', '--dir', '-b',
+                   metavar='<DIR>',
                    help="""\
 Build directory for staging chroot filesystem(s) and resulting output.
 A very large amount of free space is required.
 Default: current working directory""")
 
-    p.add_argument('--chroot-preserve', '--preserve', '-P',
+    p.add_argument('--preserve', '-P',
+                   dest='chroot_preserve',
                    action='store_true',
                    help="""\
 Preserve chroot filesystem after completion. Default: %(default)s""")
 
-    p.add_argument('--chroot-bootstrap-utility', metavar='<UTIL>',
+    p.add_argument('--bootstrapper', '-B',
+                   dest='chroot_bootstrap_utility',
+                   metavar='<UTIL>',
                    choices=['cdebootstrap', 'debootstrap'],
                    help="""\
 Bootstrap utility to prepare chroot. Choices: %(choices)s""")
 
-    p.add_argument('--config', '-c', type=file, metavar='<FILE>',
+    p.add_argument('--flavour', '-F',
+                   dest='chroot_bootstrap_flavour',
+                   metavar='<FLAV>',
+                   choices=['minimal', 'build', 'standard'],
+                   help="""\
+Debian chroot flavour. Default: minimal""")
+
+    p.add_argument('--config', '--file', '-c',
+                   metavar='<FILE>',
+                   type=file,
                    help="""\
 Configuration file. Default: /etc/fll/fll.conf""")
 
-    p.add_argument('--dryrun', '--dry-run', '-D', action='store_true',
+    p.add_argument('--dryrun', '--dry-run', '-d',
+                   action='store_true',
                    help="""\
 Dry run mode. Do not perform time consuming processes.
 Default: %(default)s""")
 
-    p.add_argument('--ftp', '--ftp-proxy', '-F', metavar='<PROXY>',
+    p.add_argument('--ftp', '--ftp-proxy',
+                   metavar='<PROXY>',
                    help="""\
 Sets the ftp_proxy environment variable and apt's Acquire::http::Proxy
 configuration item.""")
 
-    p.add_argument('--http', '--http-proxy', '-H', metavar='<PROXY>',
+    p.add_argument('--http', '--http-proxy',
+                   metavar='<PROXY>',
                    help="""\
 Sets the http_proxy environment variable and apt's Acquire::ftp::Proxy
 configuration item.""")
 
-    p.add_argument('--mirror', '-m', metavar='<URI>', help="""\
+    p.add_argument('--mirror', '--uri', '-m',
+                   metavar='<URI>',
+                   help="""\
 Debian mirror to be used. Default: http://cdn.debian.net/debian/""")
 
-    modes = p.add_mutually_exclusive_group()
-    modes.add_argument('--verbosity', metavar='<MODE>', 
-                       choices=['quiet', 'verbose', 'debug'],
-                       help="""\
-Select %(prog)s verbosity mode. Choices: %(choices)s""")
+    p.add_argument('--codename', '--suite', '-C',
+                   metavar='<SUITE>',
+                   help="""\
+Debian suite or codename (e.g. testing, unstable, sid).
+Default: sid""")
 
-    modes.add_argument('--quiet', '-q', action='store_const',
-                       dest='verbosity', const='quiet', help="""\
+    m = p.add_mutually_exclusive_group()
+    m.add_argument('--verbosity',
+                   metavar='<MODE>', 
+                   choices=['quiet', 'verbose', 'debug'],
+                   help="""\
+Select verbosity mode. Choices: %(choices)s""")
+
+    m.add_argument('--quiet', '-q',
+                   action='store_const',
+                   dest='verbosity',
+                   const='quiet',
+                   help="""\
 Select quiet verbosity mode.""")
 
-    modes.add_argument('--verbose', '-v', action='store_const',
-                       dest='verbosity', const='verbose', help="""\
+    m.add_argument('--verbose', '-v',
+                   action='store_const',
+                   dest='verbosity',
+                   const='verbose',
+                   help="""\
 Select verbose verbosity mode.""")
 
-    modes.add_argument('--debug', '-d', action='store_const',
-                       dest='verbosity', const='debug', help="""\
+    m.add_argument('--debug', '-x',
+                   action='store_const',
+                   dest='verbosity',
+                   const='debug',
+                   help="""\
 Select debug verbosity mode.""")
 
     return p
