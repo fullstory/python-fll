@@ -111,7 +111,7 @@ Select debug verbosity mode.""")
 def get_config_file():
     """Parse sys.argv for --config argument and return its value."""
     p = argparse.ArgumentParser(add_help=False)
-    p.add_argument('--config', '-c', type=file, metavar='<CONFIG>')
+    p.add_argument('--config', '-c', type=file)
     args, _ = p.parse_known_args()
 
     return args.config
