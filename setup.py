@@ -8,71 +8,73 @@ import datetime
 import os
 
 
+MAN = {
+    'fll.8': {
+        'module': 'fll.cmdline',
+        'function': 'cmdline',
+        'command': 'fll',
+        'section': 8,
+        'copyright': '2010-%s',
+        'files': ['/etc/fll/fll.conf'],
+        'see_also': ['apt.conf(5)', 'apt-secure(8)',
+                     'debconf(7)', 'cdeboostrap(8)'],
+        },
+    }
+
 class clean_with_subcommands(clean):
     def run(self):
         for cmd_name in self.get_sub_commands():
             self.run_command(cmd_name)
         clean.run(self)
 
-class clean_manpage(Command):
+class clean_manpages(Command):
     description = 'Remove manual pages from setup().'
-    user_options = [
-        ('manpage=', None, 'manpage file'),
-    ]
+    user_options = []
 
     def initialize_options(self):
-        self.manpage = None
+        pass
 
     def finalize_options(self):
-        if self.manpage is None:
-            raise DistutilsOptionError('\'manpage\' option is required')
+        pass
 
     def run(self):
-        if os.path.isfile(self.manpage):
-            os.unlink(self.manpage)
+        for man in MAN.iterkeys():
+            if os.path.isfile(man):
+                os.unlink(man)
 
-class build_manpage(Command):
+class build_manpages(Command):
     description = 'Generate manual pages from setup().'
-    user_options = [
-        ('output=', None, 'output file'),
-        ('module=', None, 'module name'),
-        ('function=', None, 'optparse function name'),
-        ('files=', None, 'list of related files'),
-        ('also=', None, 'list of related manpages'),
-    ]
+    user_options = []
 
     def initialize_options(self):
-        self.output = None
-        self.module = None
-        self.function = None
-        self.parser = None
-        self.files = None
-        self.also = None
+        pass
 
     def finalize_options(self):
-        if self.output is None:
-            raise DistutilsOptionError('\'output\' option is required')
-        if self.module is None:
-            raise DistutilsOptionError('\'module\' option is required')
-        if self.function is None:
-            raise DistutilsOptionError('\'function\' option is required')
-
-        mod = __import__(self.module, fromlist=self.module.split('.'))
-        self.parser = getattr(mod, self.function)()
+        pass
 
     def run(self):
+        for man, maninfo in MAN.iteritems():
+            self._gen_man(man, maninfo)
+
+    def _gen_man(self, man, maninfo):
         def markup(txt):
             return txt.replace('-', '\\-')
 
-        author = self.distribution.get_author()
-        email = self.distribution.get_author_email()
-        homepage = self.distribution.get_url()
+        authors = self.distribution.get_author()
         today = datetime.date.today().strftime('%Y-%m-%d')
-        command = self.output.split('.')[0]
-        section = self.output.split('.')[-1]
+        command = maninfo.get('command')
+        section = maninfo.get('section')
+        module = maninfo.get('module')
+        function = maninfo.get('function')
+        copyright = maninfo.get('copyright')
+        files = maninfo.get('files')
+        see_also = maninfo.get('see_also')
 
-        help = self.parser.format_help().splitlines()
-        usage = self.parser.format_usage().splitlines()
+        mod = __import__(module, fromlist=module.split('.'))
+        parser = getattr(mod, function)()
+
+        help = parser.format_help().splitlines()
+        usage = parser.format_usage().splitlines()
 
         desc_start = len(usage) + 1
         desc_end = opts_start = 0
@@ -84,9 +86,9 @@ class build_manpage(Command):
         desc = help[desc_start:desc_end]
         opts = help[opts_start:]
 
-        fh = open(self.output, 'w')
+        fh = open(man, 'w')
 
-        fh.write(markup('.TH %s %s %s\n' % (command, section, today)))
+        fh.write(markup('.TH %s %d %s\n' % (command, section, today)))
 
         short_desc = desc[0].rstrip('.')
         fh.write('.SH NAME\n')
@@ -153,37 +155,30 @@ class build_manpage(Command):
             else:
                 fh.write('%s\n' % markup(line))
 
-        if self.files:
+        if files:
             fh.write('.SH FILES\n')
-            for f in sorted(self.files.split()):
+            for f in sorted(files):
                 fh.write('.IP \\(bu\n%s\n' % markup(f))
 
-        if self.also:
+        if see_also:
             fh.write('.SH SEE ALSO\n')
-            for m in sorted(self.also.split()):
+            for m in sorted(see_also):
                 fh.write('.IP \\(bu\n%s\n' % markup(m))
 
-        if homepage and homepage != 'UNKNOWN':
-            fh.write('.SH HOMEPAGE\n')
-            fh.write('The latest info about \\fB%s\\fR is at\n' % markup(command))
-            fh.write('.UR %s\n.UE .\n' % markup(homepage))
-
-        if author and author != 'UNKNOWN':
+        if authors:
             fh.write('.SH AUTHORS\n')
-            fh.write('%s\n' % markup(author))
+            fh.write('%s\n' % markup(authors))
 
-            if email and email != 'UNKNOWN':
-                fh.write('.UR %s\n.UE .\n' % markup(email))
-
+        if copyright:
             fh.write('.SH COPYRIGHT\n')
             fh.write('Copyright \(co %s %s.\n' %
-                     (today.split('-')[0], markup(author)))
+                     (copyright % today.split('-')[0], markup(authors)))
 
         fh.close()
 
 
-build.sub_commands.append(('build_manpage', None))
-clean.sub_commands.append(('clean_manpage', None))
+build.sub_commands.append(('build_manpages', None))
+clean.sub_commands.append(('clean_manpages', None))
 
 setup(
     name='python-fll',
@@ -199,8 +194,8 @@ setup(
         ('/usr/share/fll', ['conf/fll.conf.spec']),
     ],
     cmdclass={
-        'build_manpage': build_manpage,
-        'clean_manpage': clean_manpage,
+        'build_manpages': build_manpages,
+        'clean_manpages': clean_manpages,
         'clean': clean_with_subcommands,
     }
 )
