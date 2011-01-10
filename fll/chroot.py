@@ -270,12 +270,11 @@ iface lo inet loopback"""
     def nuke(self):
         """Remove the chroot from filesystem. All mount points in chroot
         will be umounted prior to attempted removal."""
-        print 'HOST nuke(%s)' % self.rootdir
-
         self.umountvirtfs()
 
         try:
             if os.path.isdir(self.rootdir):
+                print 'HOST nuke(%s)' % self.rootdir
                 shutil.rmtree(self.rootdir)
         except IOError:
             raise ChrootError('failed to nuke chroot: ' + self.rootdir)
