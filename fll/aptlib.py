@@ -63,18 +63,18 @@ class AptLib(object):
         apt_pkg.Config.clear("DPkg::Pre-Install-Pkgs")
 
     def init(self):
-        self.sources_list(final_uri=False, fetch_src=self.config['fetch_src'])
+        self.sources_list(final_uri=False, src=self.config['src'])
         self._init_cache()
         self.update()
-        if self.config['insecure'] is False:
+        if self.config['key']['disable'] is False:
             self.key()
             self.update()
 
     def deinit(self):
-        self.sources_list(final_uri=True, fetch_src=False)
+        self.sources_list(final_uri=True, src=False)
         #self.clean()
 
-    def sources_list(self, final_uri=False, fetch_src=False):
+    def sources_list(self, final_uri=False, src=False):
         """Write apt sources to file(s) in /etc/apt/sources.list.d/*.list.
         Create /etc/apt/sources.list with some boilerplate text about
         the lists in /etc/apt/sources.list.d/."""
@@ -122,7 +122,7 @@ class AptLib(object):
                 try:
                     with open(self.chroot.chroot_path(fname), 'a') as fh:
                         print >>fh, 'deb ' + line
-                        if fetch_src:
+                        if src:
                             print >>fh, 'deb-src ' + line
                 except IOError, e:
                     raise AptLibError('failed to write %s: %s' % (fname, e))
@@ -169,7 +169,7 @@ class AptLib(object):
 
         if recv_keys:
             recv_keys.insert(0, '--keyserver')
-            recv_keys.insert(1, self.config['keyserver'])
+            recv_keys.insert(1, self.config['key']['server'])
             recv_keys.insert(2, '--recv-keys')
             self._gpg(recv_keys)
 

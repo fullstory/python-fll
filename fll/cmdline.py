@@ -7,15 +7,7 @@ Copyright: Copyright (C) 2010 Kel Modderman <kel@otaku42.de>
 License:   GPL-2
 """
 
-import fll.misc
 import argparse
-import os
-
-
-class _RealPath(argparse.Action):
-    """Custom action to store realpath of file/dir values."""
-    def __call__(self, parser, namespace, value, option_string=None):
-        setattr(namespace, self.dest, os.path.realpath(value))
 
 
 def cmdline():
@@ -38,45 +30,58 @@ Features:
     p = argparse.ArgumentParser(description=desc, prog='fll',
                                 formatter_class=formatter)
 
-    p.add_argument('--apt-fetch-src', '-s', action='store_true', help="""\
+    p.add_argument('--apt-src', '--src', '-S', action='store_true',
+                   help="""\
 Fetch and build source archive of software included in chroot filesystem(s).
 Default: False""")
 
-    p.add_argument('--apt-insecure', '-i', action='store_true', help="""\
+    p.add_argument('--apt-key-disable', '--disable-apt-key', '-A',
+                   action='store_true',
+                   help="""\
 Do not do trust verification of apt's sources.""")
 
-    p.add_argument('--apt-keyserver', '-K', metavar='<KEYSERVER>', help="""\
+    p.add_argument('--apt-key-server', '--keyserver', metavar='<KEYSERVER>',
+                   help="""\
 GPG Keyserver to fetch pubkeys from when securing apt.
 Default: wwwkeys.eu.pgp.net""")
 
-    arch = fll.misc.cmd('dpkg --print-architecture', pipe=True, silent=True)
-    p.add_argument('--architecture', '-a', metavar='<ARCH>', nargs='+',
-                   default = [arch.strip()], help="""\
+    p.add_argument('--archs', '-a', metavar='<ARCH>', nargs='+',
+                   help="""\
 Architecture(s) of chroot filesystem(s) to build. Multiple architectures
 can be specified separarted by whitespace. Default: host architecture""")
 
-    p.add_argument('--build-dir', '-b', metavar='<DIR>', action=_RealPath,
-                   default = os.getcwd(), help="""\
+    p.add_argument('--build', '-b', metavar='<DIR>',
+                   help="""\
 Build directory for staging chroot filesystem(s) and resulting output.
 A very large amount of free space is required.
 Default: current working directory""")
 
-    p.add_argument('--chroot-preserve', '-P', action='store_true', help="""\
+    p.add_argument('--chroot-preserve', '--preserve', '-P',
+                   action='store_true',
+                   help="""\
 Preserve chroot filesystem after completion. Default: %(default)s""")
 
-    p.add_argument('--config-file', '-c', type=file, metavar='<CONFIG>',
+    p.add_argument('--chroot-bootstrap-utility', metavar='<UTIL>',
+                   choices=['cdebootstrap', 'debootstrap'],
+                   help="""\
+Bootstrap utility to prepare chroot. Choices: %(choices)s""")
+
+    p.add_argument('--config', '-c', type=file, metavar='<FILE>',
                    help="""\
 Configuration file. Default: /etc/fll/fll.conf""")
 
-    p.add_argument('--dryrun', '-D', action='store_true', help="""\
+    p.add_argument('--dryrun', '--dry-run', '-D', action='store_true',
+                   help="""\
 Dry run mode. Do not perform time consuming processes.
 Default: %(default)s""")
 
-    p.add_argument('--ftp-proxy', '-F', metavar='<PROXY>', help="""\
+    p.add_argument('--ftp', '--ftp-proxy', '-F', metavar='<PROXY>',
+                   help="""\
 Sets the ftp_proxy environment variable and apt's Acquire::http::Proxy
 configuration item.""")
 
-    p.add_argument('--http-proxy', '-H', metavar='<PROXY>', help="""\
+    p.add_argument('--http', '--http-proxy', '-H', metavar='<PROXY>',
+                   help="""\
 Sets the http_proxy environment variable and apt's Acquire::ftp::Proxy
 configuration item.""")
 
@@ -106,7 +111,7 @@ Select debug verbosity mode.""")
 def get_config_file():
     """Parse sys.argv for --config argument and return its value."""
     p = argparse.ArgumentParser(add_help=False)
-    p.add_argument('--config-file', '-c', type=file, metavar='<CONFIG>')
+    p.add_argument('--config', '-c', type=file, metavar='<CONFIG>')
     args, _ = p.parse_known_args()
 
-    return args.config_file
+    return args.config

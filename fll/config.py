@@ -7,10 +7,12 @@ Copyright: Copyright (C) 2010 Kel Modderman <kel@otaku42.de>
 License:   GPL-2
 """
 
+from collections import defaultdict
 from configobj import ConfigObj, ConfigObjError, \
                       flatten_errors, get_extra_values
 from validate import Validator
 import fll.cmdline
+import fll.misc
 import os
 import sys
 
@@ -35,34 +37,31 @@ class Config(object):
         self.config_file = fll.cmdline.get_config_file()
         if self.config_file is None:
             if os.path.isfile('conf/fll.conf'):
-                self.config_file = os.path.realpath('conf/fll.conf')
+                self.config_file = file(os.path.realpath('conf/fll.conf'))
             elif os.path.isfile('/etc/fll/fll.conf'):
-                self.config_file = '/etc/fll/fll.conf'
+                self.config_file = file('/etc/fll/fll.conf')
             else:
                 raise ConfigError('no configuration file specified')
 
         if os.path.isfile('conf/fll.conf.spec'):
-            self.config_spec = os.path.realpath('conf/fll.conf.spec')
+            self.config_spec = file(os.path.realpath('conf/fll.conf.spec'))
         else:
-            self.config_spec = '/usr/share/fll/fll.conf.spec'
+            self.config_spec = file('/usr/share/fll/fll.conf.spec')
 
         self.config = ConfigObj(self.config_file, configspec=self.config_spec,
                                 interpolation='template')
 
-        # These sections of the configuration accept command line and mode
-        # options and are used by _process_cmdline() and _propogate_modes()
-        self._option_sections = ['apt', 'chroot']
-
         self._process_cmdline()
+        self._config_defaults()
+        self._validate_config()
         self._propogate_modes()
-        self._validate()
         self._set_environment()
 
         if self.config['verbosity'] == 'debug':
             import pprint
             pprint.pprint(dict(self.config))
 
-    def _validate(self):
+    def _validate_config(self):
         result = self.config.validate(Validator(), preserve_errors=True)
         error_msgs = []
 
@@ -102,11 +101,13 @@ class Config(object):
 
         if error_msgs:
             error_msgs.insert(0, 'config file failed validation: %s' %
-                              self.config_file)
+                              self.config_file.name)
             raise ConfigError('\n'.join(error_msgs))
 
     def _process_cmdline(self):
         args = fll.cmdline.cmdline().parse_args()
+
+        config_dicts = [self.config]
 
         for key, value in args.__dict__.iteritems():
             if value in [None, False]:
@@ -114,26 +115,49 @@ class Config(object):
             if isinstance(value, file):
                 continue
 
-            keys = key.split('_', 1)
-            if len(keys) >= 1 and keys[0] in self._option_sections:
-                section, key = keys
-                if section in self.config:
-                    self.config[section][key] = value
+            keys = key.split('_')
+            key = keys.pop(-1)
+
+            config = {key: value}
+            for k in reversed(keys):
+                config = {k: config}
+            config_dicts.append(config)
+
+        result = defaultdict(dict)
+
+        for d in config_dicts:
+            for k, v in d.iteritems():
+                if isinstance(v, dict):
+                    result[k].update(v)
                 else:
-                    self.config[section] = {key: value}
-            else:
-                self.config[key] = value
+                    result[k] = v
+
+        self.config.update(result)
+
+    def _config_defaults(self):
+        """Set some defaults which are not able to be set in fll.conf.spec."""
+        a = fll.misc.cmd('dpkg --print-architecture', pipe=True, silent=True)
+        if 'archs' not in self.config:
+            self.config['archs'] = [a.strip()]
+
+        if 'build' not in self.config:
+            self.config['build'] = os.getcwd()
+        else:
+            self.config['build'] = os.path.realpath(self.config['build'])
 
     def _propogate_modes(self):
+        """Propogate global verbosity mode to config sections."""
         mode = self.config['verbosity']
 
-        for section in self._option_sections:
-            if section in self.config:
+        for section in self.config.keys():
+            if section == 'environment':
+                continue
+            if isinstance(self.config[section], dict):
                 self.config[section][mode] = True
-            else:
-                self.config[section] = {mode: True}
 
     def _set_environment(self):
+        """Set environment variables as per 'environment' config
+        settings. Propogate http/ftp proxy settings."""
         for k, v in self.config['environment'].iteritems():
             os.putenv(k, v)
 
@@ -143,14 +167,14 @@ class Config(object):
             os.unsetenv(k)
         os.environ = self.config['environment']
 
-        if self.config['http_proxy']:
-            os.putenv('http_proxy', self.config['http_proxy'])
+        if self.config['http']:
+            os.putenv('http_proxy', self.config['http'])
             os.environ['http_proxy'] = \
                 self.config['apt']['conf']['Acquire::http::Proxy'] = \
-                self.config['http_proxy']
+                self.config['http']
 
-        if self.config['ftp_proxy']:
-            os.putenv('ftp_proxy', self.config['ftp_proxy'])
+        if self.config['ftp']:
+            os.putenv('ftp_proxy', self.config['ftp'])
             os.environ['ftp_proxy'] = \
                 self.config['apt']['conf']['Acquire::ftp::Proxy'] = \
-                self.config['ftp_proxy']
+                self.config['ftp']

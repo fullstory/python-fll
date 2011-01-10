@@ -23,8 +23,8 @@ def main():
     except (ConfigError, IOError), e:
         error(e)
 
-    for arch in conf.config['architecture']:
-        rootdir = os.path.join(conf.config['build_dir'], arch)
+    for arch in conf.config['archs']:
+        rootdir = os.path.join(conf.config['build'], arch)
 
         try:
             with Chroot(rootdir=rootdir, architecture=arch,

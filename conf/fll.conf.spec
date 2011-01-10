@@ -1,21 +1,23 @@
-architecture	= list()
-build_dir	= string(min=1, default=None)
+archs		= list()
+build		= string(min=1, default=None)
 mirror		= string(min=1, default='http://cdn.debian.net/debian/')
-http_proxy	= string(min=1, default=None)
-ftp_proxy	= string(min=1, default=None)
+http		= string(min=1, default=None)
+ftp		= string(min=1, default=None)
 dryrun		= boolean(default=False)
 verbosity	= option('quiet', 'verbose', 'debug', default='quiet')
 __many__	= string(min=1)
 
 [apt]
-fetch_src	= boolean(default=False)
-insecure	= boolean(default=False)
-keyserver	= string(min=1, default='wwwkeys.eu.pgp.net')
+src		= boolean(default=False)
 
 quiet		= boolean(default=False)
 verbose		= boolean(default=False)
 debug		= boolean(default=False)
-	
+
+[[key]]
+disable		= boolean(default=False)
+server		= string(min=1, default='wwwkeys.eu.pgp.net')
+
 [[conf]]
 APT::Install-Recommends = string(min=1, default='false')
 __many__	= string(min=1)
