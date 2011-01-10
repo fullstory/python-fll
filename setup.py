@@ -133,7 +133,7 @@ class build_manpage(Command):
                 fh.write('.TP\n')
                 for part in line.split('  '):
                     part = part.strip()
-                    part = part.replace(',', ' ", "')
+                    part = part.replace(', -', ' ", " -')
                     part = part.replace('[', ' [ ')
                     part = part.replace(']', ' ] ')
                     if part == '':
