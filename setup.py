@@ -151,6 +151,8 @@ class build_manpages(Command):
                         fh.write('\n')
                     else:
                         fh.write('%s\n' % markup(part))
+            elif line == '':
+                pass
             else:
                 fh.write('%s\n' % markup(line))
 
