@@ -30,32 +30,6 @@ Features:
     p = argparse.ArgumentParser(description=desc, prog='fll',
                                 formatter_class=formatter)
 
-    p.add_argument('--config', '-C',
-                   metavar='<FILE>',
-                   type=file,
-                   help="""\
-Alternate configuration file.
-Default: /etc/fll/fll.conf""")
-
-    p.add_argument('--dir', '-d',
-                   metavar='<DIR>',
-                   help="""\
-Build directory for staging chroot filesystem(s) and resulting output.
-A very large amount of free space is required.
-Default: current working directory""")
-
-    p.add_argument('--uid', '-u',
-                   type=int,
-                   metavar='<UID>',
-                   help="""\
-Set user ownership of output files to specified UID.""")
-
-    p.add_argument('--gid', '-g',
-                   type=int,
-                   metavar='<GID>',
-                   help="""\
-Set group ownership of output files to specified GID.""")
-
     p.add_argument('--dry-run', '-n',
                    dest='dryrun',
                    action='store_true',
@@ -88,6 +62,33 @@ Select verbose verbosity mode.""")
                    const='debug',
                    help="""\
 Select debug verbosity mode.""")
+
+    b = p.add_argument_group(title='build system related arguments')
+    b.add_argument('--config', '-C',
+                   metavar='<FILE>',
+                   type=file,
+                   help="""\
+Alternate configuration file.
+Default: /etc/fll/fll.conf""")
+
+    b.add_argument('--dir', '-d',
+                   metavar='<DIR>',
+                   help="""\
+Build directory for staging chroot filesystem(s) and resulting output.
+A very large amount of free space is required.
+Default: current working directory""")
+
+    b.add_argument('--uid', '-u',
+                   type=int,
+                   metavar='<UID>',
+                   help="""\
+Set user ownership of output files to specified UID.""")
+
+    b.add_argument('--gid', '-g',
+                   type=int,
+                   metavar='<GID>',
+                   help="""\
+Set group ownership of output files to specified GID.""")
 
     d = p.add_argument_group(title='distribution related arguments')
 
