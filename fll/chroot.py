@@ -175,10 +175,7 @@ class Chroot(object):
         debconf = ['man-db man-db/auto-update boolean true']
         self.debconf_set_selections(debconf)
         if os.path.exists(self.chroot_path('/usr/bin/mandb')):
-            cmd = ['/usr/bin/mandb', '--create']
-            if self.config['quiet']:
-                cmd.append('--quiet')
-            self.cmd(cmd)
+            self.cmd('/usr/bin/mandb --create --quiet')
 
     def chroot_path(self, path):
         return os.path.join(self.rootdir, path.lstrip('/'))

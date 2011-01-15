@@ -7,7 +7,6 @@ Copyright: Copyright (C) 2010 Kel Modderman <kel@otaku42.de>
 License:   GPL-2
 """
 
-from collections import defaultdict
 from configobj import ConfigObj, ConfigObjError, \
                       flatten_errors, get_extra_values
 from validate import Validator
@@ -105,9 +104,16 @@ class Config(object):
             raise ConfigError('\n'.join(error_msgs))
 
     def _process_cmdline(self):
-        args = fll.cmdline.cmdline().parse_args()
+        def merge(d1, d2):
+            result = dict(d1)
+            for k,v in d2.iteritems():
+                if k in result:
+                    result[k] = merge(result[k], v)
+                else:
+                    result[k] = v
+            return result
 
-        config_dicts = [self.config]
+        args = fll.cmdline.cmdline().parse_args()
 
         for key, value in args.__dict__.iteritems():
             if value in [None, False]:
@@ -121,18 +127,11 @@ class Config(object):
             config = {key: value}
             for k in reversed(keys):
                 config = {k: config}
-            config_dicts.append(config)
 
-        result = defaultdict(dict)
-
-        for d in config_dicts:
-            for k, v in d.iteritems():
-                if isinstance(v, dict):
-                    result[k].update(v)
-                else:
-                    result[k] = v
-
-        self.config.update(result)
+            if keys:
+                self.config.update(merge(self.config, config))
+            else:
+                self.config.update(config)
 
     def _config_defaults(self):
         """Set some defaults which are not able to be set in fll.conf.spec."""
@@ -140,10 +139,10 @@ class Config(object):
         if 'archs' not in self.config:
             self.config['archs'] = [a.strip()]
 
-        if 'build' not in self.config:
-            self.config['build'] = os.getcwd()
-        else:
-            self.config['build'] = os.path.realpath(self.config['build'])
+        try:
+            self.config['dir'] = os.path.realpath(self.config['dir'])
+        except KeyError:
+            self.config['dir'] = os.getcwd()
 
     def _propogate_modes(self):
         """Propogate global verbosity mode to config sections."""
@@ -167,14 +166,14 @@ class Config(object):
             os.unsetenv(k)
         os.environ = self.config['environment']
 
-        if self.config['http']:
-            os.putenv('http_proxy', self.config['http'])
+        if self.config['network']['http']['proxy']:
+            os.putenv('http_proxy', self.config['network']['http']['proxy'])
             os.environ['http_proxy'] = \
                 self.config['apt']['conf']['Acquire::http::Proxy'] = \
-                self.config['http']
+                self.config['network']['http']['proxy']
 
-        if self.config['ftp']:
-            os.putenv('ftp_proxy', self.config['ftp'])
+        if self.config['network']['ftp']['proxy']:
+            os.putenv('ftp_proxy', self.config['network']['ftp']['proxy'])
             os.environ['ftp_proxy'] = \
                 self.config['apt']['conf']['Acquire::ftp::Proxy'] = \
-                self.config['ftp']
+                self.config['network']['ftp']['proxy']

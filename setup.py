@@ -14,7 +14,7 @@ MAN = {
         'function': 'cmdline',
         'command': 'fll',
         'section': 8,
-        'copyright': '2010-%s',
+        'authors': ['Kel Modderman <kel@otaku42.de>'],
         'files': ['/etc/fll/fll.conf'],
         'see_also': ['apt.conf(5)', 'apt-secure(8)',
                      'debconf(7)', 'cdeboostrap(8)'],
@@ -60,12 +60,12 @@ class build_manpages(Command):
         def markup(txt):
             return txt.replace('-', '\\-')
 
-        authors = self.distribution.get_author()
         today = datetime.date.today().strftime('%Y-%m-%d')
         command = maninfo.get('command')
         section = maninfo.get('section')
         module = maninfo.get('module')
         function = maninfo.get('function')
+        authors = maninfo.get('authors')
         copyright = maninfo.get('copyright')
         files = maninfo.get('files')
         see_also = maninfo.get('see_also')
@@ -126,8 +126,7 @@ class build_manpages(Command):
         fh.write('.SH OPTIONS\n')
         for line in opts:
             line = line.strip()
-            if line.startswith('positional arguments:') or \
-               line.startswith('optional arguments:'):
+            if line.endswith('arguments:'):
                 line = line.rstrip(':')
                 line = line.upper()
                 fh.write('.SS %s\n' % line)
@@ -167,12 +166,11 @@ class build_manpages(Command):
 
         if authors:
             fh.write('.SH AUTHORS\n')
-            fh.write('%s\n' % markup(authors))
+            fh.write('%s\n' % markup(', '.join(authors)))
 
-        if copyright:
-            fh.write('.SH COPYRIGHT\n')
-            fh.write('Copyright \(co %s %s.\n' %
-                     (copyright % today.split('-')[0], markup(authors)))
+        fh.write('.SH COPYRIGHT\n')
+        fh.write('Copyright \(co %s %s.\n' %
+                 (today.split('-')[0], markup(', '.join(authors))))
 
         fh.close()
 

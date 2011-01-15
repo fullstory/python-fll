@@ -24,7 +24,7 @@ def main():
         error(e)
 
     for arch in conf.config['archs']:
-        rootdir = os.path.join(conf.config['build'], arch)
+        rootdir = os.path.join(conf.config['dir'], arch)
 
         try:
             with Chroot(rootdir=rootdir, architecture=arch,

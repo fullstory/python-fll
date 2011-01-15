@@ -117,8 +117,8 @@ class AptLib(object):
             write_sources_list_comment(sources_list, [description, fname],
                                        mode='a')
             
-            for suite in suites.split():
-                line = '%s %s %s' % (uri, suite, components)
+            for suite in suites:
+                line = '%s %s %s' % (uri, suite, ' '.join(components))
                 try:
                     with open(self.chroot.chroot_path(fname), 'a') as fh:
                         print >>fh, 'deb ' + line

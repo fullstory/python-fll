@@ -1,12 +1,23 @@
+dir		= string(min=1, default=None)
+uid		= integer(default=0)
+gid		= integer(default=0)
+
 archs		= list()
-build		= string(min=1, default=None)
 mirror		= string(min=1, default='http://cdn.debian.net/debian/')
-codename	= string(min=1, default='sid')
-http		= string(min=1, default=None)
-ftp		= string(min=1, default=None)
+
 dryrun		= boolean(default=False)
 verbosity	= option('quiet', 'verbose', 'debug', default='quiet')
 __many__	= string(min=1)
+
+[network]
+quiet		= boolean(default=False)
+verbose		= boolean(default=False)
+debug		= boolean(default=False)
+
+[[ftp]]
+proxy		= string(min=1, default=None)
+[[http]]
+proxy		= string(min=1, default=None)
 
 [apt]
 src		= boolean(default=False)
@@ -28,15 +39,15 @@ __many__	= string(min=1)
 description	= string(min=1, default='Debian GNU/Linux')
 uri		= string(min=1, default='$mirror')
 final_uri	= string(min=1, default=None)
-suites		= string(min=1, default='$codename')
-components	= string(min=1, default='main')
+suites		= list(default=list('sid'))
+components	= list(default=list('main'))
 
 [[[__many__]]]
 description	= string(min=1)
 uri		= string(min=1)
 final_uri	= string(min=1, default=None)
-suites		= string(min=1)
-components	= string(min=1)
+suites		= list(default=list('sid'))
+components	= list(default=list('main'))
 
 [chroot]
 preserve	= boolean(default=False)
@@ -47,7 +58,7 @@ debug		= boolean(default=False)
 
 [[bootstrap]]
 utility		= option('cdebootstrap', 'debootstrap', default='cdebootstrap')
-suite		= string(min=1, default='$codename')
+suite		= string(min=1, default='sid')
 uri		= string(min=1, default='$mirror')
 flavour		= option('minimal', 'build', 'standard', default='minimal')
 include		= string(min=1, default=None)
