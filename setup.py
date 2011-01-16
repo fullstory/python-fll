@@ -98,10 +98,15 @@ class build_manpages(Command):
         fh.write('.SH DESCRIPTION\n')
         for line in long_desc:
             line = line.strip()
-            if len(line) == 0:
+            if line == '':
                 line = '.PP'
             if line.startswith('* '):
                 line = line.replace('* ', '.IP \\(bu\n')
+            if line.startswith('$ '):
+                line = line.replace('$ ', '.IP \\(bu\n')
+            if line.startswith('Examples:'):
+                line = line.strip(':')
+                line = '.SH ' + line.upper()
             fh.write('%s\n' % markup(line))
 
         fh.write('.SH SYNOPSIS\n')
@@ -163,16 +168,18 @@ class build_manpages(Command):
 
         if see_also:
             fh.write('.SH SEE ALSO\n')
-            for m in sorted(see_also):
-                fh.write('.IP \\(bu\n%s\n' % markup(m))
+            see_also.sort()
+            line = markup(', '.join(see_also))
+            line = line.replace('(', ' "(')
+            line = line.replace('),', '), " ')
+            fh.write('.BR %s"\n' % line)
 
-        if authors:
-            fh.write('.SH AUTHORS\n')
-            fh.write('%s\n' % markup(', '.join(authors)))
+        fh.write('.SH AUTHORS\n')
+        fh.write('%s\n' % markup(', '.join(authors)))
 
         fh.write('.SH COPYRIGHT\n')
         fh.write('Copyright \(co %s %s.\n' %
-                 (today.split('-')[0], markup(', '.join(authors))))
+                 (today.split('-')[0], authors[0]))
 
         fh.close()
 

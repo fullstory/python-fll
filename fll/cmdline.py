@@ -20,11 +20,16 @@ This software prepares a Debian chroot in a compressed filesystem container
 for deployment onto bootable removable media such as CD/DVD, usb drive or
 memory card.
 
-Features:
-    * simple to configure and use
-    * flexible package modules
-    * debconf pre-seeding for package configuration
-    * uses python-apt interface for package management
+Examples:
+    Select AARNET mirror:
+    $ fll --mirror=http://mirror.aarnet.edu.au/debian
+
+    Build in /var/tmp directory:
+    $ fll --dir=/var/tmp
+
+    Build multiple chroot filesystems and include contrib and non-free Debian
+    archive components:
+    $ fll --archs amd64 i386 --components main contrib non-free
 """
     formatter = argparse.RawDescriptionHelpFormatter
     p = argparse.ArgumentParser(description=desc, prog='fll',
@@ -145,6 +150,18 @@ Do not do trust verification of apt's sources.""")
 GPG Keyserver to fetch pubkeys from when securing apt.
 Default: wwwkeys.eu.pgp.net""")
 
+    a.add_argument('--apt-verbose',
+                   action='store_true',
+                   help="""\
+Select verbose mode for apt actions, overriding the global verbosity mode.
+""")
+
+    a.add_argument('--apt-debug',
+                   action='store_true',
+                   help="""\
+Select debug mode for apt actions, overriding the global verbosity mode.
+""")
+
     c = p.add_argument_group(title='chroot related arguments')
 
     c.add_argument('--bootstrap-flavour',
@@ -177,12 +194,23 @@ Default: cdebootstrap""")
 Bootstrap mirror.
 Default: http://cdn.debian.net/debian/""")
 
-    c.add_argument('--preserve', '-P',
-                   dest='chroot_preserve',
+    c.add_argument('--chroot-preserve', '-P',
                    action='store_true',
                    help="""\
 Preserve chroot filesystem after completion.
 Default: False""")
+
+    c.add_argument('--chroot-verbose',
+                   action='store_true',
+                   help="""\
+Select verbose mode for chroot actions, overriding the global verbosity mode.
+""")
+
+    c.add_argument('--chroot-debug',
+                   action='store_true',
+                   help="""\
+Select debug mode for chroot actions, overriding the global verbosity mode.
+""")
 
     n = p.add_argument_group(title='network related arguments')
 

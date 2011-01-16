@@ -147,12 +147,18 @@ class Config(object):
     def _propogate_modes(self):
         """Propogate global verbosity mode to config sections."""
         mode = self.config['verbosity']
+        other_modes = set(['quiet', 'verbose', 'debug'])
+        other_modes.discard(mode)
 
         for section in self.config.keys():
             if section == 'environment':
                 continue
             if isinstance(self.config[section], dict):
-                self.config[section][mode] = True
+                for m in other_modes:
+                    if self.config[section][m] is True:
+                        break
+                else:
+                    self.config[section][mode] = True
 
     def _set_environment(self):
         """Set environment variables as per 'environment' config
