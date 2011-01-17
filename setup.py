@@ -3,7 +3,6 @@
 from distutils.command.build import build
 from distutils.command.clean import clean
 from distutils.core import setup, Command
-from distutils.errors import DistutilsOptionError
 import datetime
 import os
 
