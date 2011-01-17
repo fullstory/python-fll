@@ -107,18 +107,6 @@ class Config(object):
             |
             `-> config['apt']['sources']['debian']['uri'] = value
         """
-        def merge(d1, d2):
-            """Merges two dicts, non-destructively, combining values on
-            duplicate keys. Replace the values in d1 with corresponding values
-            in d2."""
-            result = dict(d1)
-            for k,v in d2.iteritems():
-                if k in result:
-                    result[k] = merge(result[k], v)
-                else:
-                    result[k] = v
-            return result
-
         cmdline = fll.cmdline.cmdline().parse_args()
 
         for key, value in cmdline.__dict__.iteritems():
@@ -134,10 +122,7 @@ class Config(object):
             for k in reversed(keys):
                 config = {k: config}
 
-            if keys:
-                self.config.update(merge(self.config, config))
-            else:
-                self.config.update(config)
+            self.config.merge(config)
 
     def _config_defaults(self):
         """Set some defaults which are not able to be set in fll.conf.spec."""
