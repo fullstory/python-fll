@@ -37,7 +37,7 @@ class AddAptSource(argparse.Action):
         setattr(namespace, 'apt_sources_%s' % label, source)
 
 
-class SetAptConfig(argparse.Action):
+class SetEnvConfig(argparse.Action):
     def __call__(self, parser, namespace, values, option_string=None):
         conf = {}
 
@@ -188,9 +188,9 @@ Default: False""")
     a = p.add_argument_group(title='apt related arguments')
 
     a.add_argument('--apt-conf',
-                   metavar='<CONF>',
+                   metavar='<KEYWORD=VALUE>',
                    nargs='+',
-                   action=SetAptConfig,
+                   action=SetEnvConfig,
                    help="""\
 Set apt configuration. Each argument is a keyword=value pair.""")
 
@@ -276,6 +276,15 @@ Select verbose mode for chroot actions, overriding the global verbosity mode.
                    help="""\
 Select debug mode for chroot actions, overriding the global verbosity mode.
 """)
+
+    e = p.add_argument_group(title='environment related arguments')
+
+    e.add_argument('--environment',
+                   metavar='<KEYWORD=VALUE>',
+                   nargs='+',
+                   action=SetEnvConfig,
+                   help="""\
+Set environment configuration. Each argument is a keyword=value pair.""")
 
     n = p.add_argument_group(title='network related arguments')
 
