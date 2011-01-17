@@ -30,12 +30,7 @@ class Config(object):
     def __init__(self):
         self.config_file = fll.cmdline.get_config_file()
         if self.config_file is None:
-            if os.path.isfile('conf/fll.conf'):
-                self.config_file = file(os.path.realpath('conf/fll.conf'))
-            elif os.path.isfile('/etc/fll/fll.conf'):
-                self.config_file = file('/etc/fll/fll.conf')
-            else:
-                raise ConfigError('no configuration file specified')
+            self.config_file = file(os.devnull)
 
         if os.path.isfile('conf/fll.conf.spec'):
             self.config_spec = file(os.path.realpath('conf/fll.conf.spec'))
@@ -49,17 +44,15 @@ class Config(object):
         self._config_defaults()
         self._validate_config()
         self._propogate_modes()
+        self._debug_configobj()
         self._set_environment()
-
-        if self.config['verbosity'] == 'debug':
-            import pprint
-            pprint.pprint(dict(self.config))
 
     def _validate_config(self):
         """Check for errors in the configuration file. Bail out if required
         sections/values are missing, or if extra sections/values are
         present."""
-        result = self.config.validate(Validator(), preserve_errors=True)
+        result = self.config.validate(Validator(), preserve_errors=True,
+                                      copy=True)
         error_msgs = []
 
         for sections, name in get_extra_values(self.config):
@@ -166,7 +159,7 @@ class Config(object):
         other_modes.discard(mode)
 
         for section in self.config.keys():
-            if section == 'environment':
+            if section in ['environment', 'network']:
                 continue
             if isinstance(self.config[section], dict):
                 for m in other_modes:
@@ -174,6 +167,13 @@ class Config(object):
                         break
                 else:
                     self.config[section][mode] = True
+
+    def _debug_configobj(self):
+        """Dump configuration object to file."""
+        dump_file = fll.cmdline.get_dump_file()
+        if dump_file is not None:
+            self.config.write(dump_file)
+            sys.exit(0)
 
     def _set_environment(self):
         """Set environment variables as per 'environment' config settings.

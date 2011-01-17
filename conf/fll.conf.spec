@@ -10,10 +10,6 @@ verbosity	= option('quiet', 'verbose', 'debug', default='quiet')
 __many__	= string(min=1)
 
 [network]
-quiet		= boolean(default=False)
-verbose		= boolean(default=False)
-debug		= boolean(default=False)
-
 [[ftp]]
 proxy		= string(min=1, default=None)
 [[http]]
@@ -48,6 +44,8 @@ uri		= string(min=1)
 final_uri	= string(min=1, default=None)
 suites		= list(default=list('sid'))
 components	= list(default=list('main'))
+keyring		= string(min=1, default=None)
+gpgkey		= string(min=1, default=None)
 
 [chroot]
 preserve	= boolean(default=False)

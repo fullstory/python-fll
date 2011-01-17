@@ -10,6 +10,44 @@ License:   GPL-2
 import argparse
 
 
+class AddAptSource(argparse.Action):
+    def __call__(self, parser, namespace, values, option_string=None):
+        label = values.pop(0)
+        if label.startswith('label='):
+            label = label.partition('=')[2]
+        else:
+            msg = 'first argument must be label=<LABEL>'
+            raise argparse.ArgumentError(self, msg)
+
+        source = {'description': '%s package repository' % label,
+                  'suites': ['sid'],
+                  'components': ['main']}
+
+        for value in values:
+            k, _, v = value.partition('=')
+            if k in ['suites', 'components']:
+                source[k] = v.split(',')
+            else:
+                source[k] = v
+
+        if 'uri' not in source:
+            msg = 'missing required argument: uri=<URI>'
+            raise argparse.ArgumentError(self, msg)
+
+        setattr(namespace, 'apt_sources_%s' % label, source)
+
+
+class SetAptConfig(argparse.Action):
+    def __call__(self, parser, namespace, values, option_string=None):
+        conf = {}
+
+        for value in values:
+            k, _, v = value.partition('=')
+            conf[k] = v
+
+        setattr(namespace, self.dest, conf)
+
+
 def cmdline():
     desc="""\
 Live GNU/Linux media building utility.
@@ -30,6 +68,10 @@ Examples:
     Build multiple chroot filesystems and include contrib and non-free Debian
     archive components:
     $ fll --archs amd64 i386 --components main contrib non-free
+
+    Add aptosid package repository to chroot's apt sources:
+    $ fll --apt-source label=aptosid uri=http://aptosid.com/debian/ \\
+          components=main,fix.main keyring=aptosid-archive-keyring
 """
     formatter = argparse.RawDescriptionHelpFormatter
     p = argparse.ArgumentParser(description=desc, prog='fll',
@@ -71,10 +113,16 @@ Select debug verbosity mode.""")
     b = p.add_argument_group(title='build system related arguments')
     b.add_argument('--config', '-C',
                    metavar='<FILE>',
-                   type=file,
+                   type=argparse.FileType('r'),
                    help="""\
 Alternate configuration file.
 Default: /etc/fll/fll.conf""")
+
+    b.add_argument('--dump', '-D',
+                   metavar='<FILE>',
+                   type=argparse.FileType('w'),
+                   help="""\
+Dump configuration object to file and exit.""")
 
     b.add_argument('--dir', '-d',
                    metavar='<DIR>',
@@ -131,13 +179,30 @@ Default: http://cdn.debian.net/debian/""")
 Distribution components to be used.
 Default: main""")
 
-    a = p.add_argument_group(title='apt related arguments')
-
-    a.add_argument('--apt-src',
+    d.add_argument('--src', '-S',
                    action='store_true',
                    help="""\
 Fetch and build source archive of software included in chroot filesystem(s).
 Default: False""")
+
+    a = p.add_argument_group(title='apt related arguments')
+
+    a.add_argument('--apt-conf',
+                   metavar='<CONF>',
+                   nargs='+',
+                   action=SetAptConfig,
+                   help="""\
+Set apt configuration. Each argument is a keyword=value pair.""")
+
+    a.add_argument('--apt-source',
+                   metavar='<SOURCE>',
+                   nargs='+',
+                   action=AddAptSource,
+                   help="""\
+Add an apt source to the configuration. Arguments to this option are
+keyword=value pairs using the same keywords as specified in [apt][[sources]]
+section of fll.conf. This option may be used more than once to add multiple
+apt repository configurations to the build.""")
 
     a.add_argument('--apt-key-disable',
                    action='store_true',
@@ -233,7 +298,15 @@ configuration item.""")
 def get_config_file():
     """Parse sys.argv for --config argument and return its value."""
     p = argparse.ArgumentParser(add_help=False)
-    p.add_argument('--config', '-C', type=file)
+    p.add_argument('--config', '-C', type=argparse.FileType('r'))
     args, _ = p.parse_known_args()
 
     return args.config
+
+def get_dump_file():
+    """Parse sys.argv for --dump argument and return its value."""
+    p = argparse.ArgumentParser(add_help=False)
+    p.add_argument('--dump', '-D', type=argparse.FileType('w'))
+    args, _ = p.parse_known_args()
+
+    return args.dump
