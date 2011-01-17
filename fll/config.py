@@ -26,11 +26,6 @@ class ConfigError(Exception):
 class Config(object):
     """
     A class for abstracting the fll configuration file.
-
-    Options       Type        Description
-    --------------------------------------------------------------------------
-    config_file - (str)       pathname to config file
-    cmdline     - (Namespace) an argparse Namespace object
     """
     def __init__(self):
         self.config_file = fll.cmdline.get_config_file()
@@ -61,6 +56,9 @@ class Config(object):
             pprint.pprint(dict(self.config))
 
     def _validate_config(self):
+        """Check for errors in the configuration file. Bail out if required
+        sections/values are missing, or if extra sections/values are
+        present."""
         result = self.config.validate(Validator(), preserve_errors=True)
         error_msgs = []
 
@@ -104,7 +102,22 @@ class Config(object):
             raise ConfigError('\n'.join(error_msgs))
 
     def _process_cmdline(self):
+        """Parse command line arguments and merge them with the configuration
+        file object. Command line arguments are trumps. They are stored in a
+        Namespace object which are mapped to the configuration file object
+        like so:
+        
+        For each name in the Namespace object we split by underscore, and each
+        segment then represents a config file section key. eg:
+
+            cmdline.Namespace('apt_sources_debian_uri') = value
+            |
+            `-> config['apt']['sources']['debian']['uri'] = value
+        """
         def merge(d1, d2):
+            """Merges two dicts, non-destructively, combining values on
+            duplicate keys. Replace the values in d1 with corresponding values
+            in d2."""
             result = dict(d1)
             for k,v in d2.iteritems():
                 if k in result:
@@ -113,9 +126,9 @@ class Config(object):
                     result[k] = v
             return result
 
-        args = fll.cmdline.cmdline().parse_args()
+        cmdline = fll.cmdline.cmdline().parse_args()
 
-        for key, value in args.__dict__.iteritems():
+        for key, value in cmdline.__dict__.iteritems():
             if value in [None, False]:
                 continue
             if isinstance(value, file):
@@ -145,7 +158,9 @@ class Config(object):
             self.config['dir'] = os.getcwd()
 
     def _propogate_modes(self):
-        """Propogate global verbosity mode to config sections."""
+        """Propogate global verbosity mode to config sections. Do not
+        propogate to sections which have independently configured verbosity
+        mode."""
         mode = self.config['verbosity']
         other_modes = set(['quiet', 'verbose', 'debug'])
         other_modes.discard(mode)
@@ -161,8 +176,8 @@ class Config(object):
                     self.config[section][mode] = True
 
     def _set_environment(self):
-        """Set environment variables as per 'environment' config
-        settings. Propogate http/ftp proxy settings."""
+        """Set environment variables as per 'environment' config settings.
+        Propogate http/ftp proxy settings to apt configuration."""
         for k, v in self.config['environment'].iteritems():
             os.putenv(k, v)
 
