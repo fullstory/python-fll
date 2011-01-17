@@ -1,4 +1,4 @@
-python-fll (0.9.0) UNRELEASED; urgency=low
+python-fll (0.9.0) unstable; urgency=low
 
   * Add python program which uses the fll modules.
   * Add cmdline.py, main.py and config.py fll modules.
