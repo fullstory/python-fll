@@ -148,7 +148,6 @@ Set group ownership of output files to specified GID.""")
     d.add_argument('--archs', '-a',
                    metavar='<ARCH>',
                    nargs='+',
-                   choices=['amd64', 'i386'],
                    help="""\
 Architecture of chroot filesystem(s) to build. Multiple architectures
 can be specified separarted by whitespace.
@@ -158,8 +157,6 @@ Default: host architecture""")
                    dest='apt_sources_debian_suites',
                    metavar='<SUITE>',
                    nargs='+',
-                   choices=['squeeze', 'testing', 'sid', 'unstable',
-                            'experimental'],
                    help="""\
 Distribution suite or codename (e.g. testing, unstable, sid).
 Default: sid""")
@@ -243,22 +240,22 @@ Select debug mode for apt actions, overriding the global verbosity mode.
 
     c = p.add_argument_group(title='chroot related arguments')
 
-    c.add_argument('--bootstrap-flavour',
+    c.add_argument('--chroot-flavour',
                    dest='chroot_bootstrap_flavour',
                    metavar='<FLAVOUR>',
                    choices=['minimal', 'build', 'standard'],
                    help="""\
-Bootstrap chroot flavour. Choices: %(choices)s.
+Chroot flavour. Choices: %(choices)s.
 Default: minimal""")
 
-    c.add_argument('--bootstrap-suite',
+    c.add_argument('--chroot-suite',
                    dest='chroot_bootstrap_suite',
                    metavar='<SUITE>',
                    help="""\
-Bootstrap suite.
+Chroot suite or codename (e.g. testing, unstable, sid).
 Default: sid""")
 
-    c.add_argument('--bootstrap-utility',
+    c.add_argument('--chroot-utility',
                    dest='chroot_bootstrap_utility',
                    metavar='<UTILITY>',
                    choices=['cdebootstrap', 'debootstrap'],
@@ -266,12 +263,26 @@ Default: sid""")
 Bootstrap utility to prepare chroot. Choices: %(choices)s.
 Default: cdebootstrap""")
 
-    c.add_argument('--bootstrap-uri',
+    c.add_argument('--chroot-uri',
                    dest='chroot_bootstrap_uri',
                    metavar='<URI>',
                    help="""\
 Bootstrap mirror.
 Default: http://cdn.debian.net/debian/""")
+
+    c.add_argument('--chroot-include',
+                   dest='chroot_bootstrap_include',
+                   metavar='<PKGS>',
+                   help="""\
+Comma delimited list of packages to include during bootstrap.
+""")
+
+    c.add_argument('--chroot-exclude',
+                   dest='chroot_bootstrap_exclude',
+                   metavar='<PKGS>',
+                   help="""\
+Comma delimited list of packages to exclude during bootstrap.
+""")
 
     c.add_argument('--chroot-preserve', '-P',
                    action='store_true',

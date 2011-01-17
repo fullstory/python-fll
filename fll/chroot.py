@@ -65,18 +65,14 @@ class Chroot(object):
         uri = self.config['bootstrap']['uri']
         suite = self.config['bootstrap']['suite']
         flavour = self.config['bootstrap']['flavour']
-        quiet = self.config['bootstrap']['quiet']
-        if not quiet:
-            quiet = self.config['quiet']
-        verbose = self.config['bootstrap']['verbose']
-        # default verbosity level is noisy enough imo
-        #if not verbose:
-        #    verbose = self.config['verbose']
-        debug = self.config['bootstrap']['debug']
-        if not debug:
-            debug = self.config['debug']
         include = self.config['bootstrap']['include']
         exclude = self.config['bootstrap']['exclude']
+
+        # Use chroot verbosity level.
+        quiet = self.config['quiet']
+        # default verbosity level is noisy enough imo
+        verbose = False
+        debug = self.config['debug']
 
         cmd = [utility]
 
