@@ -179,11 +179,19 @@ Default: http://cdn.debian.net/debian/""")
 Distribution components to be used.
 Default: main""")
 
+    d.add_argument('--binary', '-B',
+                   dest='apt_src',
+                   action='store_false',
+                   help="""\
+Do not fetch and build source archive of software included in chroot filesystem(s).
+""")
+
     d.add_argument('--src', '-S',
+                   dest='apt_src',
                    action='store_true',
                    help="""\
 Fetch and build source archive of software included in chroot filesystem(s).
-Default: False""")
+""")
 
     a = p.add_argument_group(title='apt related arguments')
 
@@ -214,6 +222,12 @@ Do not do trust verification of apt's sources.""")
                    help="""\
 GPG Keyserver to fetch pubkeys from when securing apt.
 Default: wwwkeys.eu.pgp.net""")
+
+    a.add_argument('--apt-quiet',
+                   action='store_true',
+                   help="""\
+Select quiet mode for apt actions, overriding the global verbosity mode.
+""")
 
     a.add_argument('--apt-verbose',
                    action='store_true',
@@ -264,6 +278,12 @@ Default: http://cdn.debian.net/debian/""")
                    help="""\
 Preserve chroot filesystem after completion.
 Default: False""")
+
+    c.add_argument('--chroot-quiet',
+                   action='store_true',
+                   help="""\
+Select quiet mode for chroot actions, overriding the global verbosity mode.
+""")
 
     c.add_argument('--chroot-verbose',
                    action='store_true',

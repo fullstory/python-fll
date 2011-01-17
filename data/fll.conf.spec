@@ -3,9 +3,7 @@
 # bootstrap and build for. Multiple architectures must be separated by
 # a comma. Defaults to host architecture.
 #
-# Can be set via -a <ARCH>|--archs=<ARCH> command line argument.
-# You can specify multiple <ARCH> values to the --architecture argument
-# separarted by whitespace (eg. -a amd64 i386).
+# Can be set via --archs <ARCH>[ <ARCH> ...] command line argument.
 #
 archs		= list(default=list())
 
@@ -13,7 +11,7 @@ archs		= list(default=list())
 # config['chroot']['bootstrap']['uri'] default to this ($mirror). Either that
 # or comment this out and set those configuration items independently.
 #
-# Can be set via -m <MIRROR>|--mirror=<MIRROR> command line argument.
+# Can be set via --mirror=<MIRROR> command line argument.
 #
 mirror		= string(min=1, default='http://cdn.debian.net/debian/')
 
@@ -22,24 +20,26 @@ mirror		= string(min=1, default='http://cdn.debian.net/debian/')
 # would expect for a (ch)root filesystem or the build _will_ fail. Defaults
 # to current working directory.
 #
-# Can be set via -d <DIR>|--dir=<DIR> command line argument.
-#
-# UID and GID of output files. Set via -u <UID>| --uid <UID> and
-# -g <GID>|--gid <GID> respectively.
+# Can be set via --dir=<DIR> command line argument.
 #
 dir		= string(min=1, default='.')
+
+# UID and GID of output files.
+#
+# Can be set via --uid <UID> and --gid <GID> respectively.
+#
 uid		= integer(default=0)
 gid		= integer(default=0)
 
 # Dry run mode. Do not perform time consuming processes.
 #
-# Can be set via -n|--dry-run command line arguments.
+# Can be set via --dry-run command line argument.
 #
 dryrun		= boolean(default=False)
 
 # quiet / verbose / debug modes. Default is quiet.
 #
-# Can be set via -q|--quiet, -v|--verbose, -x|--debug command line arguments.
+# Can be set via --quiet, --verbose, --debug command line arguments.
 #
 verbosity	= option('quiet', 'verbose', 'debug', default='quiet')
 
@@ -72,22 +72,34 @@ src		= boolean(default=False)
 
 # Verbosity level of class. Inherits the top level 'verbosity' mode.
 #
+# Can be set via --apt-quiet, --apt-verbose and --apt-debug command line
+# arguments.
+#
 quiet		= boolean(default=False)
 verbose		= boolean(default=False)
 debug		= boolean(default=False)
 
 
 [[key]]
-# Toggle for trust verification of apt sources
+# Toggle for trust verification of apt sources. By default apt will verify
+# that each package comes from an origin whose Release file has been gpg
+# signed, and a pubkey for it exists in the trusted keyring.
+#
+# Can be set via --apt-key-disable command line argument.
 #
 disable		= boolean(default=False)
 
 # Keyserver URI to receive gpg key(s) from.
 #
+# Can be set via --apt-key-server <KEYSERVER> command line argument.
+#
 server		= string(min=1, default='wwwkeys.eu.pgp.net')
 
 # Each entry in the [apt][[conf]] section is an apt configuration
 # keyword=value pair.
+#
+# Can be set via the --apt-conf <KEYWORD=VALUE>[ <KEYWORD=VALUE> ...]
+# command line argument.
 #
 # See /usr/share/doc/apt/examples/configure-index.gz for a full list of apt
 # configuration examples. Dir (alias RootDir) and Architecture are handled by
@@ -98,6 +110,8 @@ __many__	= string(min=1)
 
 # The [apt][[sources]] section can contain several subsections which describe
 # Debian package apt repositories.
+#
+# Can be set via the --apt-source command line argument.
 #
 # Each subsection contains information for an individual apt repository. It
 # must include description, uri, suite and component fields. The name of
@@ -154,11 +168,14 @@ preserve	= boolean(default=False)
 
 # Verbosity level of class. Inherits the top level 'verbosity' mode.
 #
+# Can be set via --chroot-quiet, --chroot-verbose and --chroot-debug command
+# line arguments.
+#
 quiet		= boolean(default=False)
 verbose		= boolean(default=False)
 debug		= boolean(default=False)
 
-# Bootstrap utility and options
+# Bootstrap utility and options.
 #
 [[bootstrap]]
 utility		= option('cdebootstrap', 'debootstrap', default='cdebootstrap')
@@ -173,6 +190,9 @@ debug		= boolean(default=False)
 
 ##############################################################################
 # Each entry in this section is an environment variable keyword=value pair.
+#
+# Can be set via the --environment <KEYWORD=VALUE>[ <KEYWORD=VALUE> ...]
+# command line argument.
 #
 [environment]
 PATH		= string(min=1, default='/usr/sbin:/usr/bin:/sbin:/bin')
