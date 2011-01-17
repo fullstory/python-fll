@@ -42,8 +42,8 @@ class Config(object):
 
         self._process_cmdline()
         self._validate_config()
-        self._propogate_modes()
         self._debug_configobj()
+        self._propogate_modes()
         self._config_defaults()
         self._set_environment()
 
