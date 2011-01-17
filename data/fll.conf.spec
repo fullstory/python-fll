@@ -177,6 +177,9 @@ debug		= boolean(default=False)
 
 # Bootstrap utility and options.
 #
+# For every keyword=value pair below exists a command line argument:
+# --chroot-<KEYWORD> <VALUE>
+#
 [[bootstrap]]
 utility		= option('cdebootstrap', 'debootstrap', default='cdebootstrap')
 suite		= string(min=1, default='sid')
