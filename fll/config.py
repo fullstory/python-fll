@@ -32,10 +32,10 @@ class Config(object):
         if self.config_file is None:
             self.config_file = file(os.devnull)
 
-        if os.path.isfile('conf/fll.conf.spec'):
-            self.config_spec = file(os.path.realpath('conf/fll.conf.spec'))
+        if os.path.isfile('data/fll.conf.spec'):
+            self.config_spec = file(os.path.realpath('data/fll.conf.spec'))
         else:
-            self.config_spec = file('/usr/share/fll/fll.conf.spec')
+            self.config_spec = file('/usr/share/fll/data/fll.conf.spec')
 
         self.config = ConfigObj(self.config_file, configspec=self.config_spec,
                                 interpolation='template')

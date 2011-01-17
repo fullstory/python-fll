@@ -197,8 +197,8 @@ setup(
     packages=['fll'],
     scripts=['bin/fll'],
     data_files=[
-        ('/usr/share/fll/data', ['data/locales-pkg-map']),
-        ('/usr/share/fll', ['conf/fll.conf.spec']),
+        ('/usr/share/fll/data', ['data/locales-pkg-map',
+                                 'data/fll.conf.spec']),
     ],
     cmdclass={
         'build_manpages': build_manpages,
