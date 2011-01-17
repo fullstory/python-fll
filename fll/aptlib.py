@@ -68,7 +68,6 @@ class AptLib(object):
         self.update()
         if self.config['key']['disable'] is False:
             self.key()
-            self.update()
 
     def deinit(self):
         self.sources_list(final_uri=True, src=False)
@@ -179,6 +178,9 @@ class AptLib(object):
 
         if keyrings:
             self.install(keyrings)
+
+        if keyrings or fetch_keys or recv_keys:
+            self.update()
 
     def commit(self):
         print 'APT COMMIT INSTALL %d DELETE %d GET %sB REQ %sB' % \

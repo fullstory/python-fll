@@ -6,9 +6,10 @@ Copyright: Copyright (C) 2010 Kel Modderman <kel@otaku42.de>
 License:   GPL-2
 """
 
-from fll.aptlib import AptLib, AptLibError, AptLibProgress
+from fll.aptlib import AptLib, AptLibError
 from fll.chroot import Chroot, ChrootError
 from fll.config import Config, ConfigError
+from fll.distro import Distro, DistroError
 
 import os
 import sys
