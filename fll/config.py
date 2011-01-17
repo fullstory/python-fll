@@ -41,10 +41,10 @@ class Config(object):
                                 interpolation='template')
 
         self._process_cmdline()
-        self._config_defaults()
         self._validate_config()
         self._propogate_modes()
         self._debug_configobj()
+        self._config_defaults()
         self._set_environment()
 
     def _validate_config(self):
@@ -141,14 +141,12 @@ class Config(object):
 
     def _config_defaults(self):
         """Set some defaults which are not able to be set in fll.conf.spec."""
-        a = fll.misc.cmd('dpkg --print-architecture', pipe=True, silent=True)
-        if 'archs' not in self.config:
-            self.config['archs'] = [a.strip()]
+        if not self.config['archs']:
+            arch = fll.misc.cmd('dpkg --print-architecture', pipe=True,
+                                silent=True)
+            self.config['archs'] = [arch.strip()]
 
-        try:
-            self.config['dir'] = os.path.realpath(self.config['dir'])
-        except KeyError:
-            self.config['dir'] = os.getcwd()
+        self.config['dir'] = os.path.realpath(self.config['dir'])
 
     def _propogate_modes(self):
         """Propogate global verbosity mode to config sections. Do not
