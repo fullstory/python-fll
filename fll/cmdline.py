@@ -120,9 +120,11 @@ Default: /etc/fll/fll.conf""")
 
     b.add_argument('--dump', '-D',
                    metavar='<FILE>',
+                   nargs='?',
                    type=argparse.FileType('w'),
                    help="""\
-Dump configuration object to file and exit.""")
+Dump configuration object and exit. A file to output to may be given as
+an argument, otherwise the configuration is dumped to stdout.""")
 
     b.add_argument('--dir', '-d',
                    metavar='<DIR>',
@@ -346,7 +348,7 @@ def get_config_file():
 def get_dump_file():
     """Parse sys.argv for --dump argument and return its value."""
     p = argparse.ArgumentParser(add_help=False)
-    p.add_argument('--dump', '-D', type=argparse.FileType('w'))
+    p.add_argument('--dump', '-D', type=argparse.FileType('w'), nargs='?')
     args, _ = p.parse_known_args()
 
     return args.dump

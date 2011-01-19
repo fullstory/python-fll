@@ -154,9 +154,11 @@ class Config(object):
     def _debug_configobj(self):
         """Dump configuration object to file."""
         dump_file = fll.cmdline.get_dump_file()
-        if dump_file is not None:
+        if dump_file is None:
+            self.config.write(sys.stdout)
+        else:
             self.config.write(dump_file)
-            sys.exit(0)
+        sys.exit(0)
 
     def _set_environment(self):
         """Set environment variables as per 'environment' config settings.
