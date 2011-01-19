@@ -46,6 +46,11 @@ class AptLib(object):
         self.cache = None
         self._progress = AptLibProgress(quiet=config['quiet'])
 
+        self.sources_list(final_uri=False, src=config['src'])
+        self._init_cache()
+        self.update()
+        self.key(disable=config['key']['disable'])
+
     def _init_cache(self):
         """Initialise apt in the chroot."""
         # Must explicitly set architecture for interacting with chroot of
@@ -60,14 +65,7 @@ class AptLib(object):
             apt_pkg.config.set(keyword, value)
 
         # Avoid apt-listchanges / dpkg-preconfigure
-        apt_pkg.Config.clear("DPkg::Pre-Install-Pkgs")
-
-    def init(self):
-        self.sources_list(final_uri=False, src=self.config['src'])
-        self._init_cache()
-        self.update()
-        if self.config['key']['disable'] is False:
-            self.key()
+        apt_pkg.config.clear("DPkg::Pre-Install-Pkgs")
 
     def deinit(self):
         self.sources_list(final_uri=True, src=False)
@@ -135,9 +133,12 @@ class AptLib(object):
         gpg.extend(args)
         self.chroot.cmd(gpg)
 
-    def key(self):
+    def key(self, disable=False):
         """Import and gpg keys, install any -keyring packages that are
         required to authenticate apt sources. Update and refresh apt cache."""
+        if disable is True:
+            return
+
         gpgkeys = []
         keyrings = []
 
