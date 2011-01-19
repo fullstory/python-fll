@@ -178,13 +178,6 @@ Default: http://cdn.debian.net/debian/""")
 Distribution components to be used.
 Default: main""")
 
-    d.add_argument('--binary', '-B',
-                   dest='apt_src',
-                   action='store_false',
-                   help="""\
-Do not fetch and build source archive of software included in chroot filesystem(s).
-""")
-
     d.add_argument('--src', '-S',
                    dest='apt_src',
                    action='store_true',
