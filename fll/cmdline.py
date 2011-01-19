@@ -8,6 +8,7 @@ License:   GPL-2
 """
 
 import argparse
+import sys
 
 
 class AddAptSource(argparse.Action):
@@ -122,6 +123,7 @@ Default: /etc/fll/fll.conf""")
                    metavar='<FILE>',
                    nargs='?',
                    type=argparse.FileType('w'),
+                   const=sys.stdout,
                    help="""\
 Dump configuration object and exit. A file to output to may be given as
 an argument, otherwise the configuration is dumped to stdout.""")
@@ -341,7 +343,8 @@ def get_config_file():
 def get_dump_file():
     """Parse sys.argv for --dump argument and return its value."""
     p = argparse.ArgumentParser(add_help=False)
-    p.add_argument('--dump', '-D', type=argparse.FileType('w'), nargs='?')
+    p.add_argument('--dump', '-D', type=argparse.FileType('w'), nargs='?',
+                   const=sys.stdout)
     args, _ = p.parse_known_args()
 
     return args.dump

@@ -109,6 +109,8 @@ class Config(object):
         """
         cmdline = fll.cmdline.cmdline().parse_args()
 
+        debug = cmdline.verbosity == 'debug'
+
         for key, value in cmdline.__dict__.iteritems():
             if value in [None, False]:
                 continue
@@ -116,13 +118,15 @@ class Config(object):
                 continue
 
             keys = key.split('_')
-            key = keys.pop(-1)
 
-            config = {key: value}
+            config = {keys.pop(-1): value}
             for k in reversed(keys):
                 config = {k: config}
 
+            fll.misc.debug(debug, key, config)
             self.config.merge(config)
+
+        fll.misc.debug(debug, 'config', self.config.dict())
 
     def _config_defaults(self):
         """Set some defaults which are not able to be set in fll.conf.spec."""
@@ -154,11 +158,9 @@ class Config(object):
     def _debug_configobj(self):
         """Dump configuration object to file."""
         dump_file = fll.cmdline.get_dump_file()
-        if dump_file is None:
-            self.config.write(sys.stdout)
-        else:
+        if dump_file is not None:
             self.config.write(dump_file)
-        sys.exit(0)
+            sys.exit(0)
 
     def _set_environment(self):
         """Set environment variables as per 'environment' config settings.

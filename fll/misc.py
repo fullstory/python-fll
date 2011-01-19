@@ -2,6 +2,15 @@ import shlex
 import signal
 import subprocess
 import os
+import pprint
+import sys
+
+def debug(mode, title, obj):
+    if mode is False:
+        return
+    print >>sys.stderr, 'DEBUG BEGIN >>> %s' % title
+    pprint.pprint(obj, sys.stderr, 4)
+    print >>sys.stderr, 'DEBUG END   <<< %s' % title
 
 def restore_sigpipe():
     """Convenience function so that subprocess may be executed with
