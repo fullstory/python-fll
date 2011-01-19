@@ -9,7 +9,10 @@ def debug(mode, title, obj):
     if mode is False:
         return
     print >>sys.stderr, 'DEBUG BEGIN >>> %s' % title
-    pprint.pprint(obj, sys.stderr, 4)
+    if isinstance(obj, str):
+        print >>sys.stderr, obj
+    else:
+        pprint.pprint(obj, sys.stderr, 4)
     print >>sys.stderr, 'DEBUG END   <<< %s' % title
 
 def restore_sigpipe():

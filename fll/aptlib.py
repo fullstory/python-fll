@@ -17,6 +17,7 @@ import datetime
 import os
 import shutil
 import subprocess
+import fll.misc
 
 
 class AptLibError(Exception):
@@ -53,6 +54,7 @@ class AptLib(object):
 
     def _init_cache(self):
         """Initialise apt in the chroot."""
+        print 'APT %s APT_PKG %s' % (apt_pkg.VERSION, apt_pkg.LIB_VERSION)
         # Must explicitly set architecture for interacting with chroot of
         # differing architecture to host. Chroot before invoking dpkg.
         apt_pkg.config.set('APT::Architecture', self.chroot.architecture)
@@ -66,6 +68,9 @@ class AptLib(object):
 
         # Avoid apt-listchanges / dpkg-preconfigure
         apt_pkg.config.clear("DPkg::Pre-Install-Pkgs")
+
+        fll.misc.debug(self.config['debug'], 'apt_pkg.config',
+                       apt_pkg.config.dump())
 
     def deinit(self):
         self.sources_list(final_uri=True, src=False)
