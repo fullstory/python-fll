@@ -54,9 +54,9 @@ __many__	= string(min=1)
 #
 [network]
 [[ftp]]
-proxy		= string(min=1, default=None)
+proxy		= string(default='')
 [[http]]
-proxy		= string(min=1, default=None)
+proxy		= string(default='')
 
 ##############################################################################
 # General options for fll.apt.AptLib class.
@@ -140,18 +140,18 @@ __many__	= string(min=1)
 [[[debian]]]
 description	= string(min=1, default='Debian GNU/Linux')
 uri		= string(min=1, default='$mirror')
-final_uri	= string(min=1, default=None)
+final_uri	= string(default='')
 suites		= list(default=list('sid'))
 components	= list(default=list('main'))
 
 [[[__many__]]]
-description	= string(min=1)
-uri		= string(min=1)
+description	= string(default='')
+uri		= string(default='')
 final_uri	= string(min=1, default=None)
 suites		= list(default=list('sid'))
 components	= list(default=list('main'))
-keyring		= string(min=1, default=None)
-gpgkey		= string(min=1, default=None)
+keyring		= string(default='')
+gpgkey		= string(default='')
 
 ##############################################################################
 # General options for fll.chroot.Chroot class.
@@ -185,8 +185,8 @@ utility		= option('cdebootstrap', 'debootstrap', default='cdebootstrap')
 suite		= string(min=1, default='sid')
 uri		= string(min=1, default='$mirror')
 flavour		= option('minimal', 'build', 'standard', default='minimal')
-include		= string(min=1, default=None)
-exclude		= string(min=1, default=None)
+include		= string(default='')
+exclude		= string(default='')
 quiet		= boolean(default=False)
 verbose		= boolean(default=False)
 debug		= boolean(default=False)
