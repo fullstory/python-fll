@@ -187,9 +187,6 @@ uri		= string(min=1, default='$mirror')
 flavour		= option('minimal', 'build', 'standard', default='minimal')
 include		= string(default='')
 exclude		= string(default='')
-quiet		= boolean(default=False)
-verbose		= boolean(default=False)
-debug		= boolean(default=False)
 
 ##############################################################################
 # Each entry in this section is an environment variable keyword=value pair.
