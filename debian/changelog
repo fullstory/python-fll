@@ -1,3 +1,9 @@
+python-fll (0.9.2) UNRELEASED; urgency=low
+
+  * NOT RELEASED YET
+
+ -- Stefan Lippers-Hollmann <s.l-h@gmx.de>  Thu, 20 Jan 2011 02:47:11 +0100
+
 python-fll (0.9.1) unstable; urgency=low
 
   * fll.conf.spec: fix defaults for string options that may be blank
