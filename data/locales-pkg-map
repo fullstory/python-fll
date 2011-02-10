@@ -24,6 +24,6 @@ koffice = koffice-l10n,
 
 myspell-en-us = myspell,
 
-openoffice.org-core = openoffice.org-help, openoffice.org-l10n, openoffice.org-thesaurus, openoffice.org-hyphenation,
+libreoffice-core = libreoffice-help, libreoffice-l10n, mythes, hyphen,
 
 sylpheed = sylpheed-i18n,
