@@ -40,6 +40,7 @@ class Config(object):
         self.config = ConfigObj(self.config_file, configspec=self.config_spec,
                                 interpolation='template')
 
+    def init_config(self):
         self._process_cmdline()
         self._validate_config()
         self._debug_configobj()
@@ -146,7 +147,7 @@ class Config(object):
         other_modes.discard(mode)
 
         for section in self.config.keys():
-            if section in ['environment', 'network']:
+            if section in ['boot', 'distro', 'environment', 'network']:
                 continue
             if isinstance(self.config[section], dict):
                 for m in other_modes:

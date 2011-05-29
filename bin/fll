@@ -26,6 +26,7 @@ def error(msg):
 def main():
     try:
         conf = Config()
+        conf.init_config()
     except (ConfigError, IOError), e:
         error(e)
 
