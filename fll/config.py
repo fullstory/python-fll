@@ -10,10 +10,396 @@ License:   GPL-2
 from configobj import ConfigObj, ConfigObjError, \
                       flatten_errors, get_extra_values
 from validate import Validator
-import fll.cmdline
-import fll.misc
+
+import argparse
 import os
 import sys
+
+import fll.misc
+
+
+def cmdline():
+    desc="""\
+Live GNU/Linux media building utility.
+
+fll builds a flexible operating system, based on Debian GNU/Linux, which is
+able to boot into a functional environment on a wide variety of hardware.
+This software prepares a Debian chroot in a compressed filesystem container
+for deployment onto bootable removable media such as CD/DVD, usb drive or
+memory card.
+
+Examples:
+    Select AARNET mirror:
+    $ fll --mirror=http://mirror.aarnet.edu.au/debian
+
+    Build in /var/tmp directory:
+    $ fll --dir=/var/tmp
+
+    Build multiple chroot filesystems and include contrib and non-free Debian
+    archive components:
+    $ fll --archs amd64 i386 --components main contrib non-free
+
+    Add aptosid package repository to chroot's apt sources:
+    $ fll --apt-source label=aptosid uri=http://aptosid.com/debian/ \\
+          components=main,fix.main keyring=aptosid-archive-keyring
+"""
+    formatter = argparse.RawDescriptionHelpFormatter
+    p = argparse.ArgumentParser(description=desc, prog='fll',
+                                formatter_class=formatter)
+
+    p.add_argument('--dry-run', '-n',
+                   dest='dryrun',
+                   action='store_true',
+                   help="""\
+Dry run mode. Do not perform time consuming processes.""")
+
+    m = p.add_mutually_exclusive_group()
+    m.add_argument('--verbosity',
+                   metavar='<MODE>', 
+                   choices=['quiet', 'verbose', 'debug'],
+                   help=argparse.SUPPRESS)
+
+    m.add_argument('--quiet', '-q',
+                   action='store_const',
+                   dest='verbosity',
+                   const='quiet',
+                   help="""\
+Select quiet verbosity mode.""")
+
+    m.add_argument('--verbose', '-v',
+                   action='store_const',
+                   dest='verbosity',
+                   const='verbose',
+                   help="""\
+Select verbose verbosity mode.""")
+
+    m.add_argument('--debug', '-x',
+                   action='store_const',
+                   dest='verbosity',
+                   const='debug',
+                   help="""\
+Select debug verbosity mode.""")
+
+    b = p.add_argument_group(title='build system related arguments')
+    b.add_argument('--config', '-C',
+                   metavar='<FILE>',
+                   type=argparse.FileType('r'),
+                   help="""\
+Alternate configuration file.
+Default: /etc/fll/fll.conf""")
+
+    b.add_argument('--dump', '-D',
+                   metavar='<FILE>',
+                   nargs='?',
+                   type=argparse.FileType('w'),
+                   const=sys.stdout,
+                   help="""\
+Dump configuration object and exit. A file to output to may be given as
+an argument, otherwise the configuration is dumped to stdout.""")
+
+    b.add_argument('--dir', '-d',
+                   metavar='<DIR>',
+                   help="""\
+Build directory for staging chroot filesystem(s) and resulting output.
+A very large amount of free space is required.
+Default: current working directory""")
+
+    b.add_argument('--uid', '-u',
+                   type=int,
+                   metavar='<UID>',
+                   help="""\
+Set user ownership of output files to specified UID.""")
+
+    b.add_argument('--gid', '-g',
+                   type=int,
+                   metavar='<GID>',
+                   help="""\
+Set group ownership of output files to specified GID.""")
+
+    d = p.add_argument_group(title='distribution related arguments')
+
+    d.add_argument('--archs', '-a',
+                   metavar='<ARCH>',
+                   nargs='+',
+                   help="""\
+Architecture of chroot filesystem(s) to build. Multiple architectures
+can be specified separarted by whitespace.
+Default: host architecture""")
+
+    d.add_argument('--suites', '-s',
+                   dest='apt_sources_debian_suites',
+                   metavar='<SUITE>',
+                   nargs='+',
+                   help="""\
+Distribution suite or codename (e.g. testing, unstable, sid).
+Default: sid""")
+
+    d.add_argument('--mirror', '-m',
+                   metavar='<URI>',
+                   help="""\
+Distribution mirror.
+Default: http://cdn.debian.net/debian/""")
+
+    d.add_argument('--components', '-c',
+                   dest='apt_sources_debian_components',
+                   metavar='<COMPONENT>',
+                   nargs='+',
+                   choices=['main', 'contrib', 'non-free'],
+                   help="""\
+Distribution components to be used.
+Default: main""")
+
+    d.add_argument('--src', '-S',
+                   dest='apt_src',
+                   action='store_true',
+                   help="""\
+Fetch and build source archive of software included in chroot filesystem(s).
+""")
+
+    d.add_argument('--distro',
+                   metavar='<KEYWORD=VALUE>',
+                   nargs='+',
+                   action=SetEnvConfig,
+                   help="""\
+Set distro defaults configuration. Each argument is a keyword=value pair.""")
+
+    a = p.add_argument_group(title='apt related arguments')
+
+    a.add_argument('--apt-conf',
+                   metavar='<KEYWORD=VALUE>',
+                   nargs='+',
+                   action=SetEnvConfig,
+                   help="""\
+Set apt configuration. Each argument is a keyword=value pair.""")
+
+    a.add_argument('--apt-source',
+                   metavar='<KEYWORD=VALUE>',
+                   nargs='+',
+                   action=AddAptSource,
+                   help="""\
+Add an apt source to the configuration. Arguments to this option are
+keyword=value pairs using the same keywords as specified in [apt][[sources]]
+section of fll.conf. This option may be used more than once to add multiple
+apt repository configurations to the build.""")
+
+    a.add_argument('--apt-key-disable',
+                   action='store_true',
+                   help="""\
+Do not do trust verification of apt's sources.""")
+
+    a.add_argument('--apt-key-server',
+                   metavar='<KEYSERVER>',
+                   help="""\
+GPG Keyserver to fetch pubkeys from when securing apt.
+Default: wwwkeys.eu.pgp.net""")
+
+    a.add_argument('--apt-quiet',
+                   action='store_true',
+                   help="""\
+Select quiet mode for apt actions, overriding the global verbosity mode.
+""")
+
+    a.add_argument('--apt-verbose',
+                   action='store_true',
+                   help="""\
+Select verbose mode for apt actions, overriding the global verbosity mode.
+""")
+
+    a.add_argument('--apt-debug',
+                   action='store_true',
+                   help="""\
+Select debug mode for apt actions, overriding the global verbosity mode.
+""")
+
+    c = p.add_argument_group(title='chroot related arguments')
+
+    c.add_argument('--chroot-flavour',
+                   dest='chroot_bootstrap_flavour',
+                   metavar='<FLAVOUR>',
+                   choices=['minimal', 'build', 'standard'],
+                   help="""\
+Chroot flavour. Choices: %(choices)s.
+Default: minimal""")
+
+    c.add_argument('--chroot-suite',
+                   dest='chroot_bootstrap_suite',
+                   metavar='<SUITE>',
+                   help="""\
+Chroot suite or codename (e.g. testing, unstable, sid).
+Default: sid""")
+
+    c.add_argument('--chroot-utility',
+                   dest='chroot_bootstrap_utility',
+                   metavar='<UTILITY>',
+                   choices=['cdebootstrap', 'debootstrap'],
+                   help="""\
+Bootstrap utility to prepare chroot. Choices: %(choices)s.
+Default: cdebootstrap""")
+
+    c.add_argument('--chroot-uri',
+                   dest='chroot_bootstrap_uri',
+                   metavar='<URI>',
+                   help="""\
+Bootstrap mirror.
+Default: http://cdn.debian.net/debian/""")
+
+    c.add_argument('--chroot-include',
+                   dest='chroot_bootstrap_include',
+                   metavar='<PKGS>',
+                   help="""\
+Comma delimited list of packages to include during bootstrap.
+""")
+
+    c.add_argument('--chroot-exclude',
+                   dest='chroot_bootstrap_exclude',
+                   metavar='<PKGS>',
+                   help="""\
+Comma delimited list of packages to exclude during bootstrap.
+""")
+
+    c.add_argument('--chroot-preserve', '-P',
+                   action='store_true',
+                   help="""\
+Preserve chroot filesystem after completion.
+Default: False""")
+
+    c.add_argument('--chroot-quiet',
+                   action='store_true',
+                   help="""\
+Select quiet mode for chroot actions, overriding the global verbosity mode.
+""")
+
+    c.add_argument('--chroot-verbose',
+                   action='store_true',
+                   help="""\
+Select verbose mode for chroot actions, overriding the global verbosity mode.
+""")
+
+    c.add_argument('--chroot-debug',
+                   action='store_true',
+                   help="""\
+Select debug mode for chroot actions, overriding the global verbosity mode.
+""")
+
+    f = p.add_argument_group(title='filesystem related arguments')
+
+    f.add_argument('--compression',
+                   dest='fscomp_compression',
+                   metavar='<COMP>',
+                   choices=['squashfs'],
+                   help="""\
+Select compression type. Choices: %(choices)s.
+Default: squashfs""")
+
+    f.add_argument('--squashfs-compressor',
+                   dest='fscomp_squashfs_compressor',
+                   metavar='<COMPRESSOR>',
+                   choices=['gzip', 'lzo', 'xz'],
+                   help="""\
+Squashfs compression type. Choices: %(choices)s.
+Default: gzip""")
+
+    f.add_argument('--fscomp-quiet',
+                   action='store_true',
+                   help="""\
+Select quiet mode for fscomp actions, overriding the global verbosity mode.
+""")
+
+    f.add_argument('--fscomp-verbose',
+                   action='store_true',
+                   help="""\
+Select verbose mode for fscomp actions, overriding the global verbosity mode.
+""")
+
+    f.add_argument('--fscomp-debug',
+                   action='store_true',
+                   help="""\
+Select debug mode for fscomp actions, overriding the global verbosity mode.
+""")
+
+    e = p.add_argument_group(title='environment related arguments')
+
+    e.add_argument('--environment',
+                   metavar='<KEYWORD=VALUE>',
+                   nargs='+',
+                   action=SetEnvConfig,
+                   help="""\
+Set environment configuration. Each argument is a keyword=value pair.""")
+
+    n = p.add_argument_group(title='network related arguments')
+
+    n.add_argument('--ftp-proxy',
+                   dest='network_ftp_proxy',
+                   metavar='<PROXY>',
+                   help="""\
+Sets the ftp_proxy environment variable and apt's Acquire::http::Proxy
+configuration item.""")
+
+    n.add_argument('--http-proxy',
+                   dest='network_http_proxy',
+                   metavar='<PROXY>',
+                   help="""\
+Sets the http_proxy environment variable and apt's Acquire::ftp::Proxy
+configuration item.""")
+
+    return p
+
+
+class AddAptSource(argparse.Action):
+    def __call__(self, parser, namespace, values, option_string=None):
+        label = values.pop(0)
+        if label.startswith('label='):
+            label = label.partition('=')[2]
+        else:
+            msg = 'first argument must be label=<LABEL>'
+            raise argparse.ArgumentError(self, msg)
+
+        source = {'description': '%s package repository' % label,
+                  'suites': ['sid'],
+                  'components': ['main']}
+
+        for value in values:
+            k, _, v = value.partition('=')
+            if k in ['suites', 'components']:
+                source[k] = v.split(',')
+            else:
+                source[k] = v
+
+        if 'uri' not in source:
+            msg = 'missing required argument: uri=<URI>'
+            raise argparse.ArgumentError(self, msg)
+
+        setattr(namespace, 'apt_sources_%s' % label, source)
+
+
+class SetEnvConfig(argparse.Action):
+    def __call__(self, parser, namespace, values, option_string=None):
+        conf = {}
+
+        for value in values:
+            k, _, v = value.partition('=')
+            conf[k] = v
+
+        setattr(namespace, self.dest, conf)
+
+
+def get_config_file():
+    """Parse sys.argv for --config argument and return its value."""
+    p = argparse.ArgumentParser(add_help=False)
+    p.add_argument('--config', '-C', type=argparse.FileType('r'))
+    args, _ = p.parse_known_args()
+
+    return args.config
+
+
+def get_dump_file():
+    """Parse sys.argv for --dump argument and return its value."""
+    p = argparse.ArgumentParser(add_help=False)
+    p.add_argument('--dump', '-D', type=argparse.FileType('w'), nargs='?',
+                   const=sys.stdout)
+    args, _ = p.parse_known_args()
+
+    return args.dump
 
 
 class ConfigError(Exception):
@@ -28,7 +414,7 @@ class Config(object):
     A class for abstracting the fll configuration file.
     """
     def __init__(self):
-        self.config_file = fll.cmdline.get_config_file()
+        self.config_file = get_config_file()
         if self.config_file is None:
             self.config_file = file(os.devnull)
 
@@ -104,15 +490,15 @@ class Config(object):
         For each name in the Namespace object we split by underscore, and each
         segment then represents a config file section key. eg:
 
-            cmdline.Namespace('apt_sources_debian_uri') = value
+            args.Namespace('apt_sources_debian_uri') = value
             |
             `-> config['apt']['sources']['debian']['uri'] = value
         """
-        cmdline = fll.cmdline.cmdline().parse_args()
+        args = cmdline().parse_args()
 
-        debug = cmdline.verbosity == 'debug'
+        debug = args.verbosity == 'debug'
 
-        for key, value in cmdline.__dict__.iteritems():
+        for key, value in args.__dict__.iteritems():
             if value in [None, False]:
                 continue
             if isinstance(value, file):
@@ -158,7 +544,7 @@ class Config(object):
 
     def _debug_configobj(self):
         """Dump configuration object to file."""
-        dump_file = fll.cmdline.get_dump_file()
+        dump_file = get_dump_file()
         if dump_file is not None:
             self.config.write(dump_file)
             sys.exit(0)
