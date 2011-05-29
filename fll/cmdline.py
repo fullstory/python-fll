@@ -1,6 +1,6 @@
 """
-This is the fll.cmdline module, it provides a function for parsing supported
-command line options.
+This is the fll.cmdline module, it provides a function for parsing command
+line options supported by the fll modules.
 
 Authour:   Kel Modderman
 Copyright: Copyright (C) 2010 Kel Modderman <kel@otaku42.de>
@@ -187,6 +187,13 @@ Default: main""")
 Fetch and build source archive of software included in chroot filesystem(s).
 """)
 
+    d.add_argument('--distro',
+                   metavar='<KEYWORD=VALUE>',
+                   nargs='+',
+                   action=SetEnvConfig,
+                   help="""\
+Set distro defaults configuration. Each argument is a keyword=value pair.""")
+
     a = p.add_argument_group(title='apt related arguments')
 
     a.add_argument('--apt-conf',
@@ -197,7 +204,7 @@ Fetch and build source archive of software included in chroot filesystem(s).
 Set apt configuration. Each argument is a keyword=value pair.""")
 
     a.add_argument('--apt-source',
-                   metavar='<SOURCE>',
+                   metavar='<KEYWORD=VALUE>',
                    nargs='+',
                    action=AddAptSource,
                    help="""\
@@ -303,6 +310,42 @@ Select verbose mode for chroot actions, overriding the global verbosity mode.
                    action='store_true',
                    help="""\
 Select debug mode for chroot actions, overriding the global verbosity mode.
+""")
+
+    f = p.add_argument_group(title='filesystem related arguments')
+
+    f.add_argument('--compression',
+                   dest='fscomp_compression',
+                   metavar='<COMP>',
+                   choices=['squashfs'],
+                   help="""\
+Select compression type. Choices: %(choices)s.
+Default: squashfs""")
+
+    f.add_argument('--squashfs-compressor',
+                   dest='fscomp_squashfs_compressor',
+                   metavar='<COMPRESSOR>',
+                   choices=['gzip', 'lzo', 'xz'],
+                   help="""\
+Squashfs compression type. Choices: %(choices)s.
+Default: gzip""")
+
+    f.add_argument('--fscomp-quiet',
+                   action='store_true',
+                   help="""\
+Select quiet mode for fscomp actions, overriding the global verbosity mode.
+""")
+
+    f.add_argument('--fscomp-verbose',
+                   action='store_true',
+                   help="""\
+Select verbose mode for fscomp actions, overriding the global verbosity mode.
+""")
+
+    f.add_argument('--fscomp-debug',
+                   action='store_true',
+                   help="""\
+Select debug mode for fscomp actions, overriding the global verbosity mode.
 """)
 
     e = p.add_argument_group(title='environment related arguments')

@@ -204,3 +204,48 @@ LANG		= string(min=1, default='C')
 DEBIAN_FRONTEND	= string(min=1, default='noninteractive')
 DEBIAN_PRIORITY	= string(min=1, default='critical')
 __many__	= string(min=1)
+
+##############################################################################
+# Each entry in this section is an distro variable keyword=value pair.
+#
+# Can be set via the --distro <KEYWORD=VALUE>[ <KEYWORD=VALUE> ...]
+# command line argument.
+#
+[distro]
+__many__	= string(min=1)
+
+##############################################################################
+# General options for fll.fscomp.FsComp class.
+#
+[fscomp]
+
+# Type of compression to use for chroot filesystem "image". Not much choice
+# atm :) Each choice should have a subsection below.
+#
+compression	= option('squashfs', default='squashfs')
+
+# Verbosity level of class. Inherits the top level 'verbosity' mode.
+#
+# Can be set via --fsimage-quiet, --fsimage-verbose and --fsimage-debug
+# command line arguments.
+#
+quiet		= boolean(default=False)
+verbose		= boolean(default=False)
+debug		= boolean(default=False)
+
+# Squashfs compression options.
+#
+[[squashfs]]
+# gzip, lzo or xz compressor
+compressor	= option('gzip', 'lzo', 'xz', default='gzip')
+
+##############################################################################
+# Boot loader related options.
+#
+[boot]
+# grub or syslinux
+loader		= option('grub', 'syslinux', default='grub')
+# Default timeout period before booting default entry
+timeout		= integer(default='30')
+# Default kernel command line parameters
+cmdline		= string(default='quiet')

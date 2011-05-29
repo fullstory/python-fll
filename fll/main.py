@@ -10,6 +10,7 @@ from fll.aptlib import AptLib, AptLibError
 from fll.chroot import Chroot, ChrootError
 from fll.config import Config, ConfigError
 from fll.distro import Distro, DistroError
+from fll.fscomp import FsComp, FsCompError
 
 import os
 import sys
