@@ -9,7 +9,7 @@ import os
 
 MAN = {
     'fll.8': {
-        'module': 'fll.cmdline',
+        'module': 'fll.config',
         'function': 'cmdline',
         'command': 'fll',
         'section': 8,
