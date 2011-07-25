@@ -1,9 +1,18 @@
-python-fll (0.9.4) UNRELEASED; urgency=low
+python-fll (0.9.4) unstable; urgency=low
 
-  * NOT RELEASED YET
+  [ Kel Modderman ]
+  * add distro and fscomp skeletons.
+  * remove main.py.
+  * add an init_config initializor to Config class. Fix hack where verbosity
+    mode is propogated to each subsection of configuration object.
+  * fold cmdline into the configuration module.
+
+  [ Stefan Lippers-Hollmann ]
   * switch to dh_python2
+  * fix manpage generation for cmdline(), which has been merged into
+    fll.config.
 
- -- Stefan Lippers-Hollmann <s.l-h@gmx.de>  Mon, 25 Jul 2011 23:35:36 +0200
+ -- Stefan Lippers-Hollmann <s.l-h@gmx.de>  Tue, 26 Jul 2011 00:47:50 +0200
 
 python-fll (0.9.3) unstable; urgency=low
 
