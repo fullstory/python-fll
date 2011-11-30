@@ -1,8 +1,9 @@
-python-fll (0.9.5) UNRELEASED; urgency=low
+python-fll (0.9.5) unstable; urgency=low
 
-  * NOT RELEASED YET
+  * disable mythes-* for the tiem being (#640606, #640607, #643644).
+  * Update for python2.7.
 
- -- Stefan Lippers-Hollmann <s.l-h@gmx.de>  Tue, 26 Jul 2011 01:07:52 +0200
+ -- Stefan Lippers-Hollmann <s.l-h@gmx.de>  Wed, 30 Nov 2011 22:57:17 +0100
 
 python-fll (0.9.4) unstable; urgency=low
 

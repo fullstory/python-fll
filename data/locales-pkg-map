@@ -24,6 +24,6 @@ koffice = koffice-l10n,
 
 myspell-en-us = myspell,
 
-libreoffice-core = libreoffice-help, libreoffice-l10n, mythes, hyphen,
+libreoffice-core = libreoffice-help, libreoffice-l10n, hyphen,
 
 sylpheed = sylpheed-i18n,
