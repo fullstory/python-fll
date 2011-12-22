@@ -1,12 +1,12 @@
-python-fll (0.9.6) UNRELEASED; urgency=low
+python-fll (0.9.6) unstable; urgency=low
 
-  * NOT RELEASED YET
+  * re-enable mythes-*, #640606 and duplicates have been fixed.
 
- -- Stefan Lippers-Hollmann <s.l-h@gmx.de>  Wed, 30 Nov 2011 22:57:29 +0100
+ -- Stefan Lippers-Hollmann <s.l-h@gmx.de>  Thu, 22 Dec 2011 02:06:13 +0100
 
 python-fll (0.9.5) unstable; urgency=low
 
-  * disable mythes-* for the tiem being (#640606, #640607, #643644).
+  * disable mythes-* for the time being (#640606, #640607, #643644).
   * Update for python2.7.
 
  -- Stefan Lippers-Hollmann <s.l-h@gmx.de>  Wed, 30 Nov 2011 22:57:17 +0100
