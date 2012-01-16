@@ -1,8 +1,8 @@
-python-fll (0.9.7) UNRELEASED; urgency=low
+python-fll (0.9.7) unstable; urgency=low
 
-  * NOT RELEASED YET
+  * switch to compat level 9.
 
- -- Stefan Lippers-Hollmann <s.l-h@gmx.de>  Thu, 22 Dec 2011 02:07:03 +0100
+ -- Stefan Lippers-Hollmann <s.l-h@gmx.de>  Mon, 16 Jan 2012 03:26:32 +0100
 
 python-fll (0.9.6) unstable; urgency=low
 
