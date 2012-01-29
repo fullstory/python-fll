@@ -69,6 +69,11 @@ class AptLib(object):
         # Avoid apt-listchanges / dpkg-preconfigure
         apt_pkg.config.clear("DPkg::Pre-Install-Pkgs")
 
+        # We always chroot before calling dpkg, force absolute path to dpkg
+        apt_pkg.config.set('Dir::Bin::dpkg', '/usr/bin/dpkg')
+        
+        # Debug apt preferences configuration
+        #apt_pkg.config.set('Debug::pkgDPkgPM', 'true')
         fll.misc.debug(self.config['debug'], 'apt_pkg.config',
                        apt_pkg.config.dump())
 
