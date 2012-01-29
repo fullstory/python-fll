@@ -17,6 +17,7 @@ from fll.chroot import Chroot, ChrootError
 from fll.config import Config, ConfigError
 from fll.distro import Distro, DistroError
 from fll.fscomp import FsComp, FsCompError
+from fll.pkgmod import PkgMod, PkgModError
 
 
 def error(msg):
@@ -26,7 +27,6 @@ def error(msg):
 def main():
     try:
         conf = Config()
-        conf.init_config()
     except (ConfigError, IOError), e:
         error(e)
 

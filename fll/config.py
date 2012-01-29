@@ -426,7 +426,6 @@ class Config(object):
         self.config = ConfigObj(self.config_file, configspec=self.config_spec,
                                 interpolation='template')
 
-    def init_config(self):
         self._process_cmdline()
         self._validate_config()
         self._debug_configobj()
