@@ -2,7 +2,7 @@
 This is the fll.pkgmod module, it provides a class for parsing package
 profile modules.
 
-Authour:   Kel Modderman
+Author:    Kel Modderman
 Copyright: Copyright (C) 2012 Kel Modderman <kel@otaku42.de>
 License:   GPL-2
 """

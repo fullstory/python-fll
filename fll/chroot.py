@@ -2,7 +2,7 @@
 This is the fll.chroot module, it provides a class for bootstrapping
 and executing commands within a chroot.
 
-Authour:   Kel Modderman
+Author:    Kel Modderman
 Copyright: Copyright (C) 2010 Kel Modderman <kel@otaku42.de>
 License:   GPL-2
 """

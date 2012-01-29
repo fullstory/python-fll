@@ -2,7 +2,7 @@
 This is the fll.config module, it provides a class for abstracting the
 fll configuration file and command line arguments.
 
-Authour:   Kel Modderman
+Author:    Kel Modderman
 Copyright: Copyright (C) 2010 Kel Modderman <kel@otaku42.de>
 License:   GPL-2
 """

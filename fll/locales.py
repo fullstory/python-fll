@@ -3,7 +3,7 @@ This is the fll.locales module, it provides a class for detecting
 locale support packages given a list/dict of packages, apt_pkg cache
 object and a dict of package -> locale package name prefix strings.
 
-Authour:   Kel Modderman
+Author:    Kel Modderman
 Copyright: Copyright (C) 2008 Kel Modderman <kel@otaku42.de>
 License:   GPL-2
 """
