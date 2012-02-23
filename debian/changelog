@@ -1,8 +1,8 @@
-python-fll (0.9.8) UNRELEASED; urgency=low
+python-fll (0.9.8) unstable; urgency=low
 
-  * NOT RELEASED YET
+  * bump standards version to 3.9.3, no changes necessary.
 
- -- Stefan Lippers-Hollmann <s.l-h@gmx.de>  Mon, 16 Jan 2012 03:27:01 +0100
+ -- Stefan Lippers-Hollmann <s.l-h@gmx.de>  Thu, 23 Feb 2012 16:52:09 +0100
 
 python-fll (0.9.7) unstable; urgency=low
 
