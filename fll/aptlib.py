@@ -70,7 +70,8 @@ class AptLib(object):
         apt_pkg.config.clear("DPkg::Pre-Install-Pkgs")
 
         # We always chroot before calling dpkg, force absolute path to dpkg
-        apt_pkg.config.set('Dir::Bin::dpkg', '/usr/bin/dpkg')
+        # IMHO this should not be required at all
+        #apt_pkg.config.set('Dir::Bin::dpkg', '/usr/bin/dpkg')
         
         # Debug apt preferences configuration
         #apt_pkg.config.set('Debug::pkgDPkgPM', 'true')
