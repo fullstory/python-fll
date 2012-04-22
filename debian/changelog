@@ -1,8 +1,8 @@
-python-fll (0.9.9) UNRELEASED; urgency=low
+python-fll (0.9.9) unstable; urgency=low
 
-  * NOT RELEASED YET
+  * revert Dir::Bin::dpkg hack.
 
- -- Stefan Lippers-Hollmann <s.l-h@gmx.de>  Thu, 23 Feb 2012 16:52:24 +0100
+ -- Kel Modderman <kel@otaku42.de>  Sun, 22 Apr 2012 13:08:37 +0200
 
 python-fll (0.9.8) unstable; urgency=low
 
