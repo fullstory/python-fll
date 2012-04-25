@@ -71,7 +71,7 @@ class AptLib(object):
 
         # We always chroot before calling dpkg, force absolute path to dpkg
         # IMHO this should not be required at all
-        #apt_pkg.config.set('Dir::Bin::dpkg', '/usr/bin/dpkg')
+        apt_pkg.config.set('Dir::Bin::dpkg', '/usr/bin/dpkg')
         
         # Debug apt preferences configuration
         #apt_pkg.config.set('Debug::pkgDPkgPM', 'true')
