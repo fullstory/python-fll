@@ -41,7 +41,10 @@ def main():
 
                 apt = AptLib(chroot=chroot, config=conf.config['apt'])
 
-                apt.install(['man-db'], commit=False)
+                pm = PkgMod(aptlib=apt, architecture=arch,
+                            config=conf.config['profile'])
+
+                apt.install(pm.pkgs, commit=False)
                 for change in apt.changes():
                     print change
                 apt.commit()

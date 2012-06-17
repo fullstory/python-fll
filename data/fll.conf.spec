@@ -59,7 +59,7 @@ proxy		= string(default='')
 proxy		= string(default='')
 
 ##############################################################################
-# General options for fll.apt.AptLib class.
+# General options for fll.aptlib.AptLib class.
 #
 [apt]
 
@@ -152,6 +152,21 @@ suites		= list(default=list('sid'))
 components	= list(default=list('main'))
 keyring		= string(default='')
 gpgkey		= string(default='')
+
+##############################################################################
+# General options for fll.pkgmod.PkgMod class.
+#
+[profile]
+
+# Name of the package profile to parse
+name		= string(default='')
+
+# Path to package module directory
+dir		= string(default='')
+
+# Packages to be installed
+packages	= list(default=list())
+
 
 ##############################################################################
 # General options for fll.chroot.Chroot class.

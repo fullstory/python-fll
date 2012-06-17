@@ -211,6 +211,27 @@ Select verbose mode for apt actions, overriding the global verbosity mode.
 Select debug mode for apt actions, overriding the global verbosity mode.
 """)
 
+    pm = p.add_argument_group(title='package module related arguments')
+
+    pm.add_argument('--profile-name',
+                    dest='profile_name',
+                    metavar='<PROFILE>',
+                    help="""\
+Name of package module to base system profile upon.""")
+
+    pm.add_argument('--profile-dir',
+                    dest='profile_dir',
+                    metavar='<DIR>',
+                    help="""\
+Package module directory path name.""")
+
+    pm.add_argument('--profile-packages',
+                    dest='profile_packages',
+                    nargs='+',
+                    metavar='<PACKAGES>',
+                    help="""\
+List of package names to append to package profile.""")
+
     c = p.add_argument_group(title='chroot related arguments')
 
     c.add_argument('--chroot-flavour',
@@ -532,14 +553,15 @@ class Config(object):
         other_modes.discard(mode)
 
         for section in self.config.keys():
-            if section in ['boot', 'distro', 'environment', 'network']:
-                continue
             if isinstance(self.config[section], dict):
-                for m in other_modes:
-                    if self.config[section][m] is True:
-                        break
-                else:
-                    self.config[section][mode] = True
+                try:
+                    for m in other_modes:
+                        if self.config[section][m] is True:
+                            break
+                    else:
+                        self.config[section][mode] = True
+                except KeyError:
+                    pass
 
     def _debug_configobj(self):
         """Dump configuration object to file."""

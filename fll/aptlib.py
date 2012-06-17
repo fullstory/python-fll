@@ -69,10 +69,6 @@ class AptLib(object):
         # Avoid apt-listchanges / dpkg-preconfigure
         apt_pkg.config.clear("DPkg::Pre-Install-Pkgs")
 
-        # We always chroot before calling dpkg, force absolute path to dpkg
-        # IMHO this should not be required at all
-        apt_pkg.config.set('Dir::Bin::dpkg', '/usr/bin/dpkg')
-        
         # Debug apt preferences configuration
         #apt_pkg.config.set('Debug::pkgDPkgPM', 'true')
         fll.misc.debug(self.config['debug'], 'apt_pkg.config',
@@ -268,7 +264,9 @@ class AptLibProgress(apt.progress.base.AcquireProgress):
         if item.owner.status == item.owner.STAT_DONE:
             line = 'APT IGN ' + item.description
         else:
-            line = 'APT ERR %s [%s]' % (item.description, item.owner.error_text)
+            line = 'APT ERR ' + item.description
+            if item.owner.error_text:
+                line += ' [%s]' % item.owner.error_text
         if self._quiet is False:
             print line
 
