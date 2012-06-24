@@ -7,6 +7,7 @@ Copyright: Copyright (C) 2012 Kel Modderman <kel@otaku42.de>
 License:   GPL-2
 """
 
+import fnmatch
 import os
 
 class PkgModError(Exception):
@@ -20,14 +21,14 @@ class PkgMod(object):
     """
     A class for parsing package profile modules.
 
-    Options   Type                Description
+    Options        Type                Description
     --------------------------------------------------------------------------
-    profdir - (str)               path to directory containing package profile
-                                  modules
-    profile - (str)               the name of the package profile to parse
-    aptlib  - (fll.aptlib.AptLib) fll.aptlib.AptLib object
-    config  - (dict)              the 'profile' section of fll.config.Config
-                                  object
+    aptlib       - (fll.aptlib.AptLib) fll.aptlib.AptLib object
+    architecture - (str)               Architecture codename
+    config       - (dict)              The 'profile' section of a
+                                       fll.config.Config object
+    locales      - (dict)              dict of locales to be considered when
+                                       selecting packages from apt's cache
     """
     def __init__(self, aptlib=None, architecture=None, config={}, locales={}):
         self.apt = aptlib
@@ -35,6 +36,15 @@ class PkgMod(object):
         self.config = config
         self.locales = locales
         self.pkgs = set()
+        self.profiles = {}
+        self.lists = {}
+        self.debconf = {}
+        self.postinst = {}
+
+        try:
+            self.locate_files(config['dir'])
+        except KeyError:
+            self.modules = {}
 
         try:
             self.profile = config['name']
@@ -42,15 +52,75 @@ class PkgMod(object):
             self.profile = None
 
         try:
-            self.modules = self.locate_modules(config['dir'])
+            self.pkgs.update(config['packages'])
         except KeyError:
-            self.modules = {}
+            pass
 
-        self.pkgs.update(config['packages'])
+    def locate_files(self, dirname):
+        for path, dirs, files in os.walk(dirname):
+            for d in dirs:
+                if d.startswith('.'):
+                    dirs.remove(d)
+            
+            for f in fnmatch.filter(files, '*.profile'):
+                profile = f.rsplit('.', 1)[0]
+                self.profiles[profile] = os.path.join(path, f)
 
-    
-    def locate_modules(self, dirname):
-        modules = {}
-        for p, d, f in os.walk(dirname):
-            modules[f] = os.path.join(p, f)
-        return modules
+            for f in fnmatch.filter(files, '*.list') + \
+                     fnmatch.filter(files, '*.list.%s' % self.arch):
+                print f
+                self.lists[f] = os.path.join(path, f)
+
+            for f in fnmatch.filter(files, '*.debconf'):
+                self.debconf[f] = os.path.join(path, f)
+
+            for f in fnmatch.filter(files, '*.postinst'):
+                self.postinst[f] = os.path.join(path, f)
+
+    def expand_profile(self):
+        lists = []
+        pkgs = []
+        if self.profile in self.profiles:
+            fname = self.profiles[self.profile]
+        else:
+            raise PkgModError('unknown package profile: %s' % self.profile)
+        
+        fh = None
+        try:
+            fh = open(fname, 'r')
+            for line in fh.readlines():
+                if not line.startswith('#include '):
+                    continue
+                for l in line.split()[1:]:
+                    if l in self.lists:
+                        print l
+                        lists.append(self.lists[l])
+                    else:
+                        raise PkgModError('unknown package list: %s' % l)
+
+                    arch_l = '%s.%s' % (l, self.arch)
+                    if arch_l in self.lists:
+                        lists.append(self.lists[arch_l])
+
+                    # XXX: debconf + postinst
+        except:
+            pass
+        finally:
+            if fh:
+                fh.close()
+
+        for fname in lists:
+            fh = None
+            try:
+                fh = open(fname, 'r')
+                for line in fh.readlines():
+                    if not line:
+                        continue
+                    pkgs.append(line.strip())
+            except:
+                pass
+            finally:
+                if fh:
+                    fh.close()
+
+        return pkgs
