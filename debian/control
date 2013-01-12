@@ -9,7 +9,7 @@ Build-Depends: debhelper (>= 9.20120115),
 Maintainer: Kel Modderman <kel@otaku42.de>
 Uploaders: Stefan Lippers-Hollmann <s.l-h@gmx.de>
 XS-Python-Version: >=2.7
-Standards-Version: 3.9.3
+Standards-Version: 3.9.4
 
 Package: python-fll
 Architecture: all
