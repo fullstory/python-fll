@@ -1,8 +1,9 @@
-python-fll (0.9.12) UNRELEASED; urgency=low
+python-fll (0.9.12) unstable; urgency=low
 
-  * NOT RELEASED YET
+  * bump standards version to 3.9.5, no changes necessary.
+  * debian/control: switch Vcs tags to github.
 
- -- Stefan Lippers-Hollmann <s.l-h@gmx.de>  Mon, 21 Oct 2013 22:23:00 +0200
+ -- Stefan Lippers-Hollmann <s.l-h@gmx.de>  Mon, 14 Apr 2014 00:02:03 +0200
 
 python-fll (0.9.11) unstable; urgency=low
 
