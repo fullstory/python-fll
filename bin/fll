@@ -43,6 +43,8 @@ def main():
 
                 pm = PkgMod(aptlib=apt, architecture=arch,
                             config=conf.config['profile'])
+                fscomp = FsComp(chroot=chroot,config=conf.config['fscomp'])
+                pm.pkgs.update(fscomp.depends)
 
                 apt.install(pm.pkgs, commit=False)
                 for change in apt.changes():
@@ -54,6 +56,7 @@ def main():
 
                 apt.deinit()
                 chroot.deinit()
+                fscomp.compress()
         except (AptLibError, ChrootError), e:
             error(e)
 

@@ -242,7 +242,7 @@ __many__	= string(min=1)
 # Type of compression to use for chroot filesystem "image". Not much choice
 # atm :) Each choice should have a subsection below.
 #
-compression	= option('squashfs', default='squashfs')
+compression	= option('none', 'squashfs', default='none')
 
 # Verbosity level of class. Inherits the top level 'verbosity' mode.
 #
