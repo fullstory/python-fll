@@ -173,6 +173,29 @@ class Chroot(object):
         if os.path.exists(self.chroot_path('/usr/bin/mandb')):
             self.cmd('/usr/bin/mandb --create --quiet')
 
+        self.makeInitramfs()
+
+    def hookitems(self,hook,items):
+        """run hook with each item"""
+        # e.g. self.makeImages('/etc/kernel/postinst.d/zs-sunxi-image',self.detectLinuxVersions())
+        print "running command >>> %s <<< for each item >>> %s <<<" % (hook, ", ".join(items))
+        for i in items:
+            self.cmd(hook % i)
+
+    def detectLinuxVersions(self):
+         """Return version string of installed vmlinu[xz]-*"""
+         kvers = [f[f.find('-')+1:]
+                 for f in os.listdir(os.path.join(self.rootdir, 'boot'))
+                 if f.startswith('vmlinuz-') or f.startswith('vmlinux-')]
+         kvers.sort
+         return(kvers)
+ 
+    def makeInitramfs(self):
+        """Generate the initramfs if update-initramfs was diverted"""
+        hook = '/usr/sbin/update-initramfs'
+        if hook in self.diverts and os.path.isfile(self.chroot_path(hook)):
+            self.hookitems('%s -c -k %s' % (hook, '%s'), self.detectLinuxVersions())
+
     def chroot_path(self, path):
         return os.path.join(self.rootdir, path.lstrip('/'))
 
