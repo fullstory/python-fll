@@ -1,7 +1,9 @@
 python-fll (0.9.13) UNRELEASED; urgency=medium
 
+  [ Niall Walsh ]
   * bin/fll enhancements
     - allow setting of hostname
+    - add password in distro to set password and addusers or autologin
 
  -- Stefan Lippers-Hollmann <s.l-h@gmx.de>  Mon, 14 Apr 2014 00:02:45 +0200
 

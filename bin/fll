@@ -49,6 +49,9 @@ def main():
                     print change
                 apt.commit()
 
+                dist = Distro(chroot=chroot, config=conf.config['distro'])
+                dist.init()
+
                 apt.deinit()
                 chroot.deinit()
         except (AptLibError, ChrootError), e:
