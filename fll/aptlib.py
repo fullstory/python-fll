@@ -87,14 +87,10 @@ class AptLib(object):
                 with open(filename, mode) as fh:
                     if mode == 'a':
                         print >>fh, '\n'
-                    for n in range(30):
-                        print >>fh, '# '
-                    print >>fh, '#\n'
+                    print >>fh, '%s#' % ('# '*30)
                     for line in lines:
-                        print >>fh, '# %-58s#\n' % line
-                    for n in range(30):
-                        print >>fh, '# '
-                    print >>fh, '#\n'
+                        print >>fh, '# %-58s#' % line
+                    print >>fh, '%s#' % ('# '*30)
             except IOError, e:
                 raise AptLibError('failed to modify sources.list: ' + e)
 
@@ -124,7 +120,7 @@ class AptLib(object):
             for suite in suites:
                 line = '%s %s %s' % (uri, suite, ' '.join(components))
                 try:
-                    with open(self.chroot.chroot_path(fname), 'a') as fh:
+                    with open(self.chroot.chroot_path(fname), 'w') as fh:
                         print >>fh, 'deb ' + line
                         if src:
                             print >>fh, 'deb-src ' + line

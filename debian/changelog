@@ -9,6 +9,7 @@ python-fll (0.9.13) UNRELEASED; urgency=medium
     - add tar option to fscomp
     - create initramfs on chroot deinit
     - write empty /etc/machine-id on chroot deinit
+  * bin/fll: fixup /etc/apt/sources.list (and sources.list.d/*) writing
 
  -- Stefan Lippers-Hollmann <s.l-h@gmx.de>  Mon, 14 Apr 2014 00:02:45 +0200
 
