@@ -205,8 +205,8 @@ utility		= option('cdebootstrap', 'debootstrap', default='cdebootstrap')
 suite		= string(min=1, default='sid')
 uri		= string(min=1, default='$mirror')
 flavour		= option('minimal', 'build', 'standard', default='minimal')
-include		= string(default='')
-exclude		= string(default='')
+include		= string(default='apt-utils,bzip2,gnupg,systemd-sysv,xz-utils')
+exclude		= string(default='init,sysvinit,sysvinit-core')
 
 ##############################################################################
 # Each entry in this section is an environment variable keyword=value pair.
