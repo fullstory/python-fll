@@ -141,7 +141,7 @@ class Chroot(object):
             shutil.copy(fname, self.chroot_path(fname))
 
         for fname in ('/etc/fstab', '/etc/hostname',
-                      '/etc/network/interfaces'):
+                      '/etc/network/interfaces', '/etc/machine-id'):
             self.create_file(fname)
 
         for fname in self.diverts:
