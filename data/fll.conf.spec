@@ -242,7 +242,7 @@ __many__	= string(min=1)
 # Type of compression to use for chroot filesystem "image". Not much choice
 # atm :) Each choice should have a subsection below.
 #
-compression	= option('none', 'squashfs', default='none')
+compression	= option('none', 'squashfs', 'tar', default='none')
 
 # Verbosity level of class. Inherits the top level 'verbosity' mode.
 #
@@ -258,6 +258,12 @@ debug		= boolean(default=False)
 [[squashfs]]
 # gzip, lzo or xz compressor
 compressor	= option('gzip', 'lzo', 'xz', default='gzip')
+
+# Tar compression options.
+#
+[[tar]]
+# gz, bz, xz or pixz compressor
+compressor	= option('gz', 'bz', 'xz', 'pz', default='gz')
 
 ##############################################################################
 # Boot loader related options.

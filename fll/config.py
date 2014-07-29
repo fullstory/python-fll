@@ -314,7 +314,7 @@ Default: chroot""")
     f.add_argument('--compression',
                    dest='fscomp_compression',
                    metavar='<COMP>',
-                   choices=['squashfs'],
+                   choices=['squashfs','tar','none'],
                    help="""\
 Select compression type. Choices: %(choices)s.
 Default: squashfs""")
@@ -325,6 +325,14 @@ Default: squashfs""")
                    choices=['gzip', 'lzo', 'xz'],
                    help="""\
 Squashfs compression type. Choices: %(choices)s.
+Default: gzip""")
+
+    f.add_argument('--tar-compressor',
+                   dest='fscomp_tar_compressor',
+                   metavar='<COMPRESSOR>',
+                   choices=['gz', 'bz', 'pz', 'xz'],
+                   help="""\
+Tar compression type. Choices: %(choices)s.
 Default: gzip""")
 
     f.add_argument('--fscomp-quiet',

@@ -29,6 +29,8 @@ class FsComp(object):
         """create whatever is set for compression"""
         if (self.config['compression'] == 'squashfs'):
             self.squash()
+        elif (self.config['compression'] == 'tar'):
+            self.tar()
         else:
             return(true)
 
@@ -47,6 +49,23 @@ class FsComp(object):
         if (config['compressor'] == 'xz'):
             cmd.extend('-Xbcj', 'x86')
         cmd.extend(['-wildcards', '-ef', self.excludesfile(config,filename)])
+        self.chroot.cmd(cmd)
+        shutil.move(self.chroot.chroot_path(filename),output)
+
+    def tar(self):
+        """create a tar of the chroot"""
+        config = self.config['tar']
+        output = '%s.tar' % self.chroot.rootdir
+        if ('file' in config):
+            filename = config['file']
+            output = filename
+        else:
+            filename = 'tmp/rootfs.tar'
+            if ('compressor' in config):
+                filename = '%s.%s' % (filename, config['compressor'])
+                output = '%s.%s' % (output, config['compressor'])
+        cmd = [ 'tar', '-c', "%s" % self.taropt[config['compressor']], '-f', filename ]
+        cmd.extend([ '-X', self.excludesfile(config,filename), '.' ])
         self.chroot.cmd(cmd)
         shutil.move(self.chroot.chroot_path(filename),output)
 
