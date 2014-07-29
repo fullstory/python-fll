@@ -32,7 +32,7 @@ class FsComp(object):
         elif (self.config['compression'] == 'tar'):
             self.tar()
         else:
-            return(true)
+            return
 
     def squash(self):
         """create a squashfs file of the chroot"""
