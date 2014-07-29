@@ -1,4 +1,4 @@
-python-fll (0.9.13) UNRELEASED; urgency=medium
+python-fll (0.9.13) unstable; urgency=medium
 
   [ Niall Walsh ]
   * bin/fll enhancements
@@ -11,7 +11,10 @@ python-fll (0.9.13) UNRELEASED; urgency=medium
     - write empty /etc/machine-id on chroot deinit
   * bin/fll: fixup /etc/apt/sources.list (and sources.list.d/*) writing
 
- -- Stefan Lippers-Hollmann <s.l-h@gmx.de>  Mon, 14 Apr 2014 00:02:45 +0200
+  [ Stefan Lippers-Hollmann ]
+  * add bfree to uploaders, so dch can do its magic.
+
+ -- Stefan Lippers-Hollmann <s.l-h@gmx.de>  Wed, 30 Jul 2014 00:57:42 +0200
 
 python-fll (0.9.12) unstable; urgency=low
 
