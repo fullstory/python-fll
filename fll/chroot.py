@@ -141,7 +141,7 @@ class Chroot(object):
             shutil.copy(fname, self.chroot_path(fname))
 
         for fname in ('/etc/fstab', '/etc/hostname',
-                      '/etc/network/interfaces', '/etc/machine-id'):
+                      '/etc/network/interfaces'):
             self.create_file(fname)
 
         for fname in self.diverts:
@@ -156,7 +156,7 @@ class Chroot(object):
     def deinit(self):
         """Undo any changes in the chroot which should be undone. Make any
         final configurations."""
-        for fname in ('/etc/hosts', '/etc/resolv.conf'):
+        for fname in ('/etc/hosts', '/etc/resolv.conf', '/etc/machine-id'):
             # /etc/resolv.conf (and possibly others) may be a symlink to an 
             # absolute path - so do not clobber the host's configuration.
             if os.path.islink(self.chroot_path(fname)):
