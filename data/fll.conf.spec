@@ -190,6 +190,11 @@ quiet		= boolean(default=False)
 verbose		= boolean(default=False)
 debug		= boolean(default=False)
 
+# Hostname for the chroot.  Defaults to chroot
+#
+# Can be set via --hostname
+hostname       = string(min=1, default="chroot")
+
 # Bootstrap utility and options.
 #
 # For every keyword=value pair below exists a command line argument:

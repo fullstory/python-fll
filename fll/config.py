@@ -302,6 +302,13 @@ Select verbose mode for chroot actions, overriding the global verbosity mode.
 Select debug mode for chroot actions, overriding the global verbosity mode.
 """)
 
+    c.add_argument('--hostname',
+                   dest='chroot_hostname',
+                   metavar='<HOSTNAME>',
+                   help="""\
+Hostname to assign to the chroot.
+Default: chroot""")
+
     f = p.add_argument_group(title='filesystem related arguments')
 
     f.add_argument('--compression',

@@ -202,12 +202,12 @@ exit %d""" % retv
 # /etc/fstab: static file system information."""
 
             elif filename == '/etc/hostname':
-                print >>fh, 'chroot'
+                print >>fh, self.config['hostname']
 
             elif filename == '/etc/hosts':
                 print >>fh, """\
 127.0.0.1\tlocalhost
-127.0.0.1\tchroot
+127.0.0.1\t%s
 
 # Below lines are for IPv6 capable hosts
 ::1     ip6-localhost ip6-loopback
@@ -215,7 +215,7 @@ fe00::0 ip6-localnet
 ff00::0 ip6-mcastprefix
 ff02::1 ip6-allnodes
 ff02::2 ip6-allrouters
-ff02::3 ip6-allhosts"""
+ff02::3 ip6-allhosts""" % self.config['hostname']
 
             elif filename == '/etc/network/interfaces':
                 print >>fh, """\
