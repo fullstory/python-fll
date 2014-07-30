@@ -112,6 +112,8 @@ class Chroot(object):
         # Some flavours use cdebootstrap-helper-rc.d, some don't. We'll
         # impliment our our own policy-rc.d for consistency.
         if utility == 'cdebootstrap':
+            #755965 cdebootstrap leaves proc mounted
+            self.umountvirtfs()
             self.cmd('dpkg --purge cdebootstrap-helper-rc.d'.split(),
                      silent=self.config['quiet'])
 
