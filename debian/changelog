@@ -1,12 +1,8 @@
-python-fll (0.9.14) UNRELEASED; urgency=medium
+python-fll (0.9.14) unstable; urgency=medium
 
-  [ Stefan Lippers-Hollmann ]
-  * NOT RELEASED YET
+  * umount the virtfs after cdebootstrap to account for #755965.
 
-  [ Niall Walsh ]
-  * umount the virtfs after cdebootstrap to account for #755965
-
- -- Stefan Lippers-Hollmann <s.l-h@gmx.de>  Wed, 30 Jul 2014 00:58:39 +0200
+ -- Niall Walsh <niallwalsh@celtux.org>  Wed, 30 Jul 2014 02:00:37 +0100
 
 python-fll (0.9.13) unstable; urgency=medium
 
