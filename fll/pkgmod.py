@@ -44,12 +44,16 @@ class PkgMod(object):
         try:
             self.locate_files(config['dir'])
         except KeyError:
+            # this seems to be pointless?
             self.modules = {}
 
         try:
             self.profile = config['name']
         except KeyError:
             self.profile = None
+
+        if self.profile != None and len(self.profiles.keys()) > 0:
+            self.pkgs.update(self.expand_profile())
 
         try:
             self.pkgs.update(config['packages'])
