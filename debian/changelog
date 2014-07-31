@@ -1,12 +1,8 @@
-python-fll (0.9.15) UNRELEASED; urgency=medium
+python-fll (0.9.15) unstable; urgency=medium
 
-  [ Stefan Lippers-Hollmann ]
-  * NOT RELEASED YET
+  * bin/fll make pkgmod actually expand the profile.
 
-  [ Niall Walsh ]
-  * bin/fll make pkgmod actually expand the profile
-
- -- Stefan Lippers-Hollmann <s.l-h@gmx.de>  Wed, 30 Jul 2014 03:26:06 +0200
+ -- Niall Walsh <niallwalsh@celtux.org>  Wed, 30 Jul 2014 17:52:32 +0100
 
 python-fll (0.9.14) unstable; urgency=medium
 
