@@ -8,8 +8,11 @@ python-fll (0.9.16) UNRELEASED; urgency=medium
   * make grub timeout integer in data/fll.conf.spec default to 1 not '1'
   * fix doc of compression (default is actually none now)
   * add file option to config for squashfs and tar and adjust to match
+  * mountvirtfs on init and umount on deinint
+  * only mountvirtfs in command if not mounted and umount if it had to
+  * refactor mounting so chroot.nuke umounts all but exit just undoes virtfs
 
- -- Niall Walsh <niallwalsh@celtux.org>  Tue, 05 Aug 2014 21:27:00 +0100
+ -- Niall Walsh <niallwalsh@celtux.org>  Tue, 05 Aug 2014 21:49:17 +0100
 
 python-fll (0.9.15) unstable; urgency=medium
 

@@ -193,7 +193,7 @@ class AptLib(object):
              apt_pkg.size_to_str(self.cache.required_download),
              apt_pkg.size_to_str(self.cache.required_space))
 
-        self.chroot.mountvirtfs()
+        mounted = self.chroot.mountvirtfs()
         try:
             self.cache.commit(fetch_progress=self._progress)
         except apt.cache.FetchFailedException, e:
@@ -201,7 +201,8 @@ class AptLib(object):
         except SystemError, e:
             raise AptLibError('apt encountered an error: %s' % e)
         finally:
-            self.chroot.umountvirtfs()
+            if mounted > 0:
+                self.chroot.umountvirtfs()
 
         self.open()
 

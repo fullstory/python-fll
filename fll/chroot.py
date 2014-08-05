@@ -50,11 +50,13 @@ class Chroot(object):
         self.rootdir = os.path.realpath(rootdir)
         self.architecture = architecture
         self.config = config
+        self.mounted = list()
 
     def __enter__(self):
         return self
 
     def __exit__(self, type, value, traceback):
+        self.umountvirtfs()
         if not self.config['preserve']:
             self.nuke()
 
@@ -135,6 +137,7 @@ class Chroot(object):
 
     def init(self):
         """Configure the basics to get a functioning chroot."""
+        self.mountvirtfs()
         for fname in ('/etc/hosts', '/etc/resolv.conf'):
             if os.path.isfile(self.chroot_path(fname)):
                 os.unlink(self.chroot_path(fname))
@@ -174,6 +177,7 @@ class Chroot(object):
             self.cmd('/usr/bin/mandb --create --quiet')
 
         self.makeInitramfs()
+        self.umountvirtfs()
 
     def hookitems(self,hook,items):
         """run hook with each item"""
@@ -254,17 +258,29 @@ iface lo inet loopback"""
 
     def mountvirtfs(self):
         """Mount /sys, /proc, /dev/pts virtual filesystems in the chroot."""
+        if len(self.mounted) > 0:
+            return(0)
+
         virtfs = {'devpts': '/dev/pts', 'proc': '/proc', 'sysfs': '/sys'}
 
         for vfstype, mnt in virtfs.items():
             cmd = ['mount', '-t', vfstype, 'none', self.chroot_path(mnt)]
             try:
                 subprocess.check_call(cmd, preexec_fn=fll.misc.restore_sigpipe)
+                self.mounted.append(self.chroot_path(mnt))
             except (subprocess.CalledProcessError, OSError):
                 raise ChrootError('failed to mount virtfs: ' + mnt)
+        return(len(self.mounted))
 
     def umountvirtfs(self):
         """Unmount virtual filesystems that are mounted within the chroot."""
+        umount = self.mounted
+        umount.reverse()
+        self._umount(umount)
+        self.mounted = list()
+
+    def umountall(self):
+        """Unmount all filesystems that are mounted within the chroot."""
         umount = list()
 
         with open('/proc/mounts') as mounts:
@@ -275,6 +291,10 @@ iface lo inet loopback"""
 
         umount.sort(key=len)
         umount.reverse()
+        self._umount(umount)
+
+    def _umount(self,umount):
+        """just umount whatever list of filesystems we are given."""
 
         for mnt in umount:
             try:
@@ -315,7 +335,7 @@ iface lo inet loopback"""
         if quiet is False:
             quiet = self.config['quiet']
 
-        self.mountvirtfs()
+        mounted = self.mountvirtfs()
         try:
             if pipe:
                 proc = subprocess.Popen(cmd, preexec_fn=self._chroot, cwd='/',
@@ -332,7 +352,8 @@ iface lo inet loopback"""
         except OSError, e:
             raise ChrootError('chrooted command failed: %s' % e)
         finally:
-            self.umountvirtfs()
+            if mounted > 0:
+                self.umountvirtfs()
             if devnull:
                 os.close(devnull)
 
