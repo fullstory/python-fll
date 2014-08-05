@@ -256,12 +256,16 @@ debug		= boolean(default=False)
 # Squashfs compression options.
 #
 [[squashfs]]
+# squashfs filename, can be set with --squashfs-file command line argument
+file            = string(min=0, default='')
 # gzip, lzo or xz compressor
 compressor	= option('gzip', 'lzo', 'xz', default='gzip')
 
 # Tar compression options.
 #
 [[tar]]
+# tar filename, can be set with --tar-file command line argument
+file            = string(min=0, default='')
 # gz, bz, xz or pixz compressor
 compressor	= option('gz', 'bz', 'xz', 'pz', default='gz')
 

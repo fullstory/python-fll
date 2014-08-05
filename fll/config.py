@@ -327,6 +327,13 @@ Default: none""")
 Squashfs compression type. Choices: %(choices)s.
 Default: gzip""")
 
+    f.add_argument('--squashfs-file',
+                   dest='fscomp_squashfs_file',
+                   metavar='<FILE>',
+                   help="""\
+Squashfs filename.
+Default: ''""")
+
     f.add_argument('--tar-compressor',
                    dest='fscomp_tar_compressor',
                    metavar='<COMPRESSOR>',
@@ -334,6 +341,13 @@ Default: gzip""")
                    help="""\
 Tar compression type. Choices: %(choices)s.
 Default: gzip""")
+
+    f.add_argument('--tar-file',
+                   dest='fscomp_tar_file',
+                   metavar='<FILE>',
+                   help="""\
+Tar filename.
+Default: ''""")
 
     f.add_argument('--fscomp-quiet',
                    action='store_true',

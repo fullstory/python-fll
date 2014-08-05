@@ -7,8 +7,9 @@ python-fll (0.9.16) UNRELEASED; urgency=medium
   * revert the fix for #755965 as cdebootstrap 0.6.3 fixed it
   * make grub timeout integer in data/fll.conf.spec default to 1 not '1'
   * fix doc of compression (default is actually none now)
+  * add file option to config for squashfs and tar and adjust to match
 
- -- Niall Walsh <niallwalsh@celtux.org>  Tue, 05 Aug 2014 20:59:38 +0100
+ -- Niall Walsh <niallwalsh@celtux.org>  Tue, 05 Aug 2014 21:27:00 +0100
 
 python-fll (0.9.15) unstable; urgency=medium
 

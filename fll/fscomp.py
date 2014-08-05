@@ -48,26 +48,25 @@ class FsComp(object):
     def squash(self):
         """create a squashfs file of the chroot"""
         config = self.config['squashfs']
-        output = '%s.squash' % self.chroot.rootdir
-        if ('file' in config):
+        output = None
+        if (len(config['file']) > 0):
             filename = config['file']
             output = filename
         else:
             filename = 'tmp/squash'
-            filename = '%s.%s' % (filename, config['compressor'])
-            output = '%s.%s' % (output, config['compressor'])
         cmd = [ 'mksquashfs', '.', filename, '-comp', config['compressor'] ]
         if (config['compressor'] == 'xz'):
             cmd.extend('-Xbcj', 'x86')
         cmd.extend(['-wildcards', '-ef', self.excludesfile(config,filename)])
         self.chroot.cmd(cmd)
-        shutil.move(self.chroot.chroot_path(filename),output)
+        if (output != None):
+            shutil.move(self.chroot.chroot_path(filename),output)
 
     def tar(self):
         """create a tar of the chroot"""
         config = self.config['tar']
-        output = '%s.tar' % self.chroot.rootdir
-        if ('file' in config):
+        output = None
+        if (len(config['file']) > 0):
             filename = config['file']
             output = filename
         else:
@@ -79,7 +78,8 @@ class FsComp(object):
                           '-c', "%s" % self.taropt[config['compressor']],
                           '-f', filename,
                           '-X', self.excludesfile(config,filename), '.' ])
-        shutil.move(self.chroot.chroot_path(filename),output)
+        if (output != None):
+            shutil.move(self.chroot.chroot_path(filename),output)
 
     def excludesfile(self,config,filename):
         """only the most specific excludes are used
