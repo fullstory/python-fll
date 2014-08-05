@@ -17,7 +17,18 @@ class FsCompError(Exception):
 
 class FsComp(object):
     taropt = dict( gz='-z', bz='-j', xz='-J', pz='-Ipixz' )
-    excludes = [ 'etc/.*lock', 'etc/*-', 'etc/adjtime', 'etc/apt/*~', 'etc/blkid.tab', 'etc/console-setup/*.gz', 'etc/localtime', 'etc/lvm/archive', 'etc/lvm/backup', 'etc/lvm/cache', 'etc/timezone', 'etc/ssh/ssh_host_*key*', 'etc/udev/rules.d/70-persistent-*.rules', 'etc/X11/xorg.conf', 'lib/init/rw/*', 'media/*', 'media/.*', 'mnt/*', 'proc/*', 'root/*', 'root/.*', 'run/*', 'sys/*', 'tmp/*', 'tmp/.*', 'usr/bin/qemu-*-static', 'var/cache/apt/*.bin', 'var/cache/apt-show-versions/*', 'var/cache/debconf/*-old', 'var/lib/alsa/asound.state', 'var/lib/apt/extended_states', 'var/lib/apt/lists/*_dists_*', 'var/lib/dbus/machine-id', 'var/lib/dpkg/*-old', 'var/run/*' ]
+    excludes = [ 'etc/.*lock', 'etc/*-', 'etc/adjtime', 'etc/apt/*~',
+                 'etc/blkid.tab', 'etc/console-setup/*.gz', 'etc/localtime',
+                 'etc/lvm/archive', 'etc/lvm/backup', 'etc/lvm/cache',
+                 'etc/timezone', 'etc/ssh/ssh_host_*key*',
+                 'etc/udev/rules.d/70-persistent-*.rules', 'etc/X11/xorg.conf',
+                 'lib/init/rw/*', 'media/*', 'media/.*', 'mnt/*', 'proc/*',
+                 'root/*', 'root/.*', 'run/*', 'sys/*', 'tmp/*', 'tmp/.*',
+                 'usr/bin/qemu-*-static', 'var/cache/apt/*.bin',
+                 'var/cache/apt-show-versions/*', 'var/cache/debconf/*-old',
+                 'var/lib/alsa/asound.state', 'var/lib/apt/extended_states',
+                 'var/lib/apt/lists/*_dists_*', 'var/lib/dbus/machine-id',
+                 'var/lib/dpkg/*-old', 'var/run/*' ]
     def __init__(self, chroot=None,config={}):
         self.chroot=chroot
         self.config=config
@@ -64,9 +75,10 @@ class FsComp(object):
             if ('compressor' in config):
                 filename = '%s.%s' % (filename, config['compressor'])
                 output = '%s.%s' % (output, config['compressor'])
-        cmd = [ 'tar', '-c', "%s" % self.taropt[config['compressor']], '-f', filename ]
-        cmd.extend([ '-X', self.excludesfile(config,filename), '.' ])
-        self.chroot.cmd(cmd)
+        self.chroot.cmd([ 'tar',
+                          '-c', "%s" % self.taropt[config['compressor']],
+                          '-f', filename,
+                          '-X', self.excludesfile(config,filename), '.' ])
         shutil.move(self.chroot.chroot_path(filename),output)
 
     def excludesfile(self,config,filename):
