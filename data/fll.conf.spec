@@ -272,6 +272,6 @@ compressor	= option('gz', 'bz', 'xz', 'pz', default='gz')
 # grub or syslinux
 loader		= option('grub', 'syslinux', default='grub')
 # Default timeout period before booting default entry
-timeout		= integer(default='30')
+timeout		= integer(default=30)
 # Default kernel command line parameters
 cmdline		= string(default='quiet')
