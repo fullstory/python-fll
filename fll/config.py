@@ -317,7 +317,7 @@ Default: chroot""")
                    choices=['squashfs','tar','none'],
                    help="""\
 Select compression type. Choices: %(choices)s.
-Default: squashfs""")
+Default: none""")
 
     f.add_argument('--squashfs-compressor',
                    dest='fscomp_squashfs_compressor',
