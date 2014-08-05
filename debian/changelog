@@ -1,8 +1,12 @@
 python-fll (0.9.16) UNRELEASED; urgency=medium
 
+  [ Stefan Lippers-Hollmann ]
   * NOT RELEASED YET
 
- -- Stefan Lippers-Hollmann <s.l-h@gmx.de>  Thu, 31 Jul 2014 05:47:24 +0200
+  [ Niall Walsh ]
+  * revert the fix for #755965 as cdebootstrap 0.6.3 fixed it
+
+ -- Niall Walsh <niallwalsh@celtux.org>  Tue, 05 Aug 2014 20:59:38 +0100
 
 python-fll (0.9.15) unstable; urgency=medium
 
