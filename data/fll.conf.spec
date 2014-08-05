@@ -242,7 +242,7 @@ __many__	= string(min=1)
 # Type of compression to use for chroot filesystem "image". Not much choice
 # atm :) Each choice should have a subsection below.
 #
-compression	= option('none', 'squashfs', 'tar', default='none')
+compression	= option('none', 'mkfs', 'squashfs', 'tar', default='none')
 
 # Verbosity level of class. Inherits the top level 'verbosity' mode.
 #
@@ -268,6 +268,20 @@ compressor	= option('gzip', 'lzo', 'xz', default='gzip')
 file            = string(min=0, default='')
 # gz, bz, xz or pixz compressor
 compressor	= option('gz', 'bz', 'xz', 'pz', default='gz')
+
+# mkfs options
+#
+[[mkfs]]
+# hand set the filename
+file            = string(min=0, default='')
+# just ext2, ext3, ext4 support (for now anyway)
+type           = option('ext2', 'ext3', 'ext4', default='ext2')
+# the size in MB to allocate (sparsely) for the initial filesystem
+size            = integer(default='16000')
+# whether or not to resize and truncate the filesystem
+shrink          = boolean(default=True)
+# what precentage of the apparent size to shrink to (rounded up to 1M)
+factor          = integer(default=110)
 
 ##############################################################################
 # Boot loader related options.

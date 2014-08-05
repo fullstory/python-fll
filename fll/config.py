@@ -314,7 +314,7 @@ Default: chroot""")
     f.add_argument('--compression',
                    dest='fscomp_compression',
                    metavar='<COMP>',
-                   choices=['squashfs','tar','none'],
+                   choices=['mkfs', 'squashfs','tar','none'],
                    help="""\
 Select compression type. Choices: %(choices)s.
 Default: none""")
@@ -347,6 +347,42 @@ Default: gzip""")
                    metavar='<FILE>',
                    help="""\
 Tar filename.
+Default: ''""")
+
+    f.add_argument('--mkfs-type',
+                   dest='fscomp_mkfs_type',
+                   metavar='<FSTYPE>',
+                   choices=['ext2', 'ext3', 'ext4'],
+                   help="""\
+Mkfs filesystem type. Choices: %(choices)s.
+Default: ext2""")
+
+    f.add_argument('--mkfs-size',
+                   dest='fscomp_mkfs_size',
+                   type=int,
+                   help="""\
+Mkfs size in MB to sparse allocate to filesystem image.
+Default: 16000""")
+
+    f.add_argument('--mkfs-shrink',
+                   action='store_true',
+                   help="""\
+Select if mkfs result should be resized and truncated.
+Default: True
+""")
+
+    f.add_argument('--mkfs-factor',
+                   dest='fscomp_mkfs_factor',
+                   type=int,
+                   help="""\
+Mkfs factor as percentage to scale up apparent size by for truncation.
+Default: 110""")
+
+    f.add_argument('--mkfs-file',
+                   dest='fscomp_mkfs_file',
+                   metavar='<FILE>',
+                   help="""\
+Mkfs filename.
 Default: ''""")
 
     f.add_argument('--fscomp-quiet',

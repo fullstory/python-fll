@@ -9,6 +9,7 @@ License:   GPL-2
 """
 
 import fll.misc
+import os
 import shutil
 
 class FsCompError(Exception):
@@ -35,6 +36,8 @@ class FsComp(object):
         self.depends=[]
         if (self.config['compression'] == 'squashfs'):
             self.depends.append('squashfs-tools')
+        elif (self.config['compression'] == 'mkfs'):
+            self.depends.append('rsync')
 
     def compress(self):
         """create whatever is set for compression"""
@@ -42,6 +45,8 @@ class FsComp(object):
             self.squash()
         elif (self.config['compression'] == 'tar'):
             self.tar()
+        elif (self.config['compression'] == 'mkfs'):
+            self.mkfs()
         else:
             return
 
@@ -79,6 +84,39 @@ class FsComp(object):
                           '-f', filename,
                           '-X', self.excludesfile(config,filename), '.' ])
         if (output != None):
+            shutil.move(self.chroot.chroot_path(filename),output)
+
+    def mkfs(self):
+        """create a filesystem image of the chroot"""
+        config = self.config['mkfs']
+        output = None
+        if (len(config['file']) > 0):
+            filename = config['file']
+            output = filename
+        else:
+            filename = 'tmp/rootfs'
+        self.chroot.cmd([ 'dd', 'if=/dev/zero',
+                          'of=%s' % filename,
+                          'bs=1',
+                          'count=1', 'seek=%i' % (config['size']*2**20) ])
+        self.chroot.cmd([ 'mkfs', '-t', config['type'], filename ])
+        if (not os.path.exists('/dev/loop0')):
+            fll.misc.cmd(['insmod', 'loop'])
+        fll.misc.cmd(['mount', self.chroot.chroot_path(filename),
+                                self.chroot.chroot_path('/mnt') ])
+        self.chroot.cmd(['rsync', '-a', 
+                         '--exclude-from=%s' % self.excludesfile(config,filename),
+                         '/', '/mnt/' ])
+        fll.misc.cmd(['umount', self.chroot.chroot_path('/mnt') ])
+        size = self.chroot.cmd(['du', '-m', filename ],
+                                pipe=True).split()[0]
+        # factor is %, size is mb, round up round number of M
+        resize = "%iM" % (1+int(config['factor']*int(size)/100))
+        if ( not (os.path.exists(self.chroot.chroot_path('/etc/mtab')))):
+            os.symlink('/proc/mounts',self.chroot.chroot_path('/etc/mtab'))
+        self.chroot.cmd([ 'resize2fs', filename, resize ])
+        self.chroot.cmd([ 'truncate', '-s', resize, filename ])
+        if output != None:
             shutil.move(self.chroot.chroot_path(filename),output)
 
     def excludesfile(self,config,filename):
