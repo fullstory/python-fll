@@ -11,6 +11,7 @@ License:   GPL-2
 import fll.misc
 import os
 import shutil
+import time
 
 class FsCompError(Exception):
     pass
@@ -33,22 +34,28 @@ class FsComp(object):
     def __init__(self, chroot=None,config={}):
         self.chroot=chroot
         self.config=config
+        self.output=list()
         self.depends=[]
+        self.ts=''
         if (self.config['compression'] == 'squashfs'):
             self.depends.append('squashfs-tools')
         elif (self.config['compression'] == 'mkfs'):
             self.depends.append('rsync')
+        if (('wrap' in self.config) and ('iso' in self.config['wrap'])):
+            # ,'grub-efi-amd64-bin','grub-efi-ia32-bin'
+            self.depends.extend(['grub-pc','xorriso'])
 
     def compress(self):
-        """create whatever is set for compression"""
+        """create whatever is set for compression and wrap it"""
+        # create the stamp file to identify the fs
+        self.stamp()
         if (self.config['compression'] == 'squashfs'):
             self.squash()
         elif (self.config['compression'] == 'tar'):
             self.tar()
         elif (self.config['compression'] == 'mkfs'):
             self.mkfs()
-        else:
-            return
+        self.wrap()
 
     def squash(self):
         """create a squashfs file of the chroot"""
@@ -66,6 +73,9 @@ class FsComp(object):
         self.chroot.cmd(cmd)
         if (output != None):
             shutil.move(self.chroot.chroot_path(filename),output)
+            self.output.append(output)
+        else:
+            self.output.append(filename)
 
     def tar(self):
         """create a tar of the chroot"""
@@ -85,6 +95,9 @@ class FsComp(object):
                           '-X', self.excludesfile(config,filename), '.' ])
         if (output != None):
             shutil.move(self.chroot.chroot_path(filename),output)
+            self.output.append(output)
+        else:
+            self.output.append(filename)
 
     def mkfs(self):
         """create a filesystem image of the chroot"""
@@ -118,6 +131,9 @@ class FsComp(object):
         self.chroot.cmd([ 'truncate', '-s', resize, filename ])
         if output != None:
             shutil.move(self.chroot.chroot_path(filename),output)
+            self.output.append(output)
+        else:
+            self.output.append(filename)
 
     def excludesfile(self,config,filename):
         """only the most specific excludes are used
@@ -134,3 +150,73 @@ class FsComp(object):
         fh.close()
         return(xfile)
 
+    def wrap(self):
+        """run the list in wrap"""
+        if ( (self.config['wrap'][0] == 'none' ) or
+             (len(self.output) == 0) ):
+            return()
+        for wrapper in self.config['wrap']:
+            if wrapper == 'iso':
+                config = self.config['iso']
+                input = self.output[ len(self.output)-1 ]
+                output = None
+                if (len(config['file']) > 0):
+                    filename = config['file']
+                    output = filename
+                else:
+                    filename = '%s.iso' % input
+                os.mkdir(self.chroot.chroot_path('/tmp/iso'))
+                #self.chroot.cmd(['cp', '-a', '/boot', '/tmp/iso/'])
+                self.stage('/tmp/iso')
+                cmd = [ 'grub-mkrescue', '-o', filename, '/tmp/iso', '--',
+                        '--append_partition', '2', '0x83', input ]
+            self.chroot.cmd(cmd)
+        if output != None:
+            shutil.move(self.chroot.chroot_path(filename),output)
+            self.output.append(output)
+        else:
+            self.output.append(filename)
+
+    def stage(self,path):
+        """put required files needed in path"""
+        chroot = self.chroot
+        if ( not os.path.exists( chroot.chroot_path( path ) ) ):
+            return()
+        chpath = chroot.chroot_path('/tmp/iso')
+        bpath = os.path.join(chpath, 'boot')
+        gpath = os.path.join(bpath, 'grub')
+        os.mkdir(bpath)
+        os.mkdir(gpath)
+        ks = list()
+        for v in chroot.detectLinuxVersions():
+            for t in [ 'x', 'z']:
+                kernel = chroot.chroot_path('boot/vmlinu%s-%s' % (t,v))
+                if (os.path.exists(kernel)):
+                    shutil.copy(kernel,bpath)
+                    ks.append([kernel[kernel.rfind('/'):]])
+            initrd = os.path.join(chroot.chroot_path('boot/initrd.img-' + v))
+            if (os.path.isfile(initrd)):
+                shutil.copy(initrd,bpath)
+                ks[len(ks)-1].append(initrd[initrd.rfind('/'):])
+        if (len(ks)==0):
+            return
+        gcfg = open(os.path.join(gpath,'grub.cfg'),'w')
+        gcfg.write('insmod search\n')
+        gcfg.write('search --no-floppy --file --set dev %s\n' % self.ts)
+        gcfg.write('probe -s uuid -u $dev\n')
+        for k in ks:
+            gcfg.write('menuentry "%s" {\n' % k[0][k[0].find('-'):])
+            gcfg.write('  linux /boot/%s root=UUID=$uuid ro quiet systemd.show_status=1\n' % k[0])
+            if (len(k)>1):
+                gcfg.write('  initrd /boot/%s\n' % k[1])
+            gcfg.write('}\n')
+        gcfg.close()
+
+    def stamp(self):
+        """"""
+        ts = list()
+        for t in time.gmtime():
+            ts.append('%i' % t)
+        stamp = '/boot/'+'-'.join(ts)
+        open(self.chroot.chroot_path(stamp),'w').close()
+        self.ts = stamp

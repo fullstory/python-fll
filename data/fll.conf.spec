@@ -253,6 +253,9 @@ quiet		= boolean(default=False)
 verbose		= boolean(default=False)
 debug		= boolean(default=False)
 
+# List of wrappers to apply to last output.  Only iso (or none) for now.
+wrap		= list(default=list('none'))
+
 # Squashfs compression options.
 #
 [[squashfs]]
@@ -282,6 +285,12 @@ size            = integer(default='16000')
 shrink          = boolean(default=True)
 # what precentage of the apparent size to shrink to (rounded up to 1M)
 factor          = integer(default=110)
+
+# iso options
+#
+[[iso]]
+# just the option to set the filename for now
+file            = string(min=0, default='')
 
 ##############################################################################
 # Boot loader related options.

@@ -319,6 +319,14 @@ Default: chroot""")
 Select compression type. Choices: %(choices)s.
 Default: none""")
 
+    f.add_argument('--wrap',
+                   dest='fscomp_wrap',
+                   nargs='+',
+                   metavar='<WRAP>',
+                   help="""\
+Select list of wrappers to apply in order. Choices: none or iso.
+Default: none""")
+
     f.add_argument('--squashfs-compressor',
                    dest='fscomp_squashfs_compressor',
                    metavar='<COMPRESSOR>',
@@ -383,6 +391,13 @@ Default: 110""")
                    metavar='<FILE>',
                    help="""\
 Mkfs filename.
+Default: ''""")
+
+    f.add_argument('--iso-file',
+                   dest='fscomp_iso_file',
+                   metavar='<FILE>',
+                   help="""\
+ISO filename.
 Default: ''""")
 
     f.add_argument('--fscomp-quiet',
