@@ -1,9 +1,5 @@
-python-fll (0.9.16) UNRELEASED; urgency=medium
+python-fll (0.9.16) unstable; urgency=medium
 
-  [ Stefan Lippers-Hollmann ]
-  * NOT RELEASED YET
-
-  [ Niall Walsh ]
   * revert the fix for #755965 as cdebootstrap 0.6.3 fixed it
   * make grub timeout integer in data/fll.conf.spec default to 1 not '1'
   * fix doc of compression (default is actually none now)
