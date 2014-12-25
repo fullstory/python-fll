@@ -1,8 +1,8 @@
-python-fll (0.9.17) UNRELEASED; urgency=medium
+python-fll (0.9.17) unstable; urgency=medium
 
-  * NOT RELEASED YET
+  * switch to http.debian.net as GeoMirror.
 
- -- Stefan Lippers-Hollmann <s.l-h@gmx.de>  Wed, 06 Aug 2014 04:43:00 +0200
+ -- Stefan Lippers-Hollmann <s.l-h@gmx.de>  Thu, 25 Dec 2014 23:51:20 +0100
 
 python-fll (0.9.16) unstable; urgency=medium
 
