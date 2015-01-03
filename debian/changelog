@@ -1,6 +1,7 @@
 python-fll (0.9.18) UNRELEASED; urgency=medium
 
   * NOT RELEASED YET
+  * convert to machine readable copyright.
 
  -- Stefan Lippers-Hollmann <s.l-h@gmx.de>  Thu, 25 Dec 2014 23:51:58 +0100
 
