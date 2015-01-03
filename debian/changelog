@@ -1,10 +1,10 @@
-python-fll (0.9.18) UNRELEASED; urgency=medium
+python-fll (0.9.18) unstable; urgency=medium
 
-  * NOT RELEASED YET
   * convert to machine readable copyright.
   * bump standards version to 3.9.6, no changes necessary.
+  * remove versioned (build-)dependencies satisfied in oldstable.
 
- -- Stefan Lippers-Hollmann <s.l-h@gmx.de>  Thu, 25 Dec 2014 23:51:58 +0100
+ -- Stefan Lippers-Hollmann <s.l-h@gmx.de>  Sun, 04 Jan 2015 00:15:49 +0100
 
 python-fll (0.9.17) unstable; urgency=medium
 
