@@ -1,3 +1,9 @@
+python-fll (0.9.19) UNRELEASED; urgency=medium
+
+  * NOT RELEASED YET
+
+ -- Stefan Lippers-Hollmann <s.l-h@gmx.de>  Sun, 04 Jan 2015 00:17:03 +0100
+
 python-fll (0.9.18) unstable; urgency=medium
 
   * convert to machine readable copyright.
