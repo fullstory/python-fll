@@ -1,3 +1,9 @@
+python-fll (0.9.20) unstable; urgency=medium
+
+  * add dh-python package to Build-Depends.
+
+ -- Stefan Lippers-Hollmann <s.l-h@gmx.de>  Mon, 11 May 2015 23:28:05 +0200
+
 python-fll (0.9.19) unstable; urgency=medium
 
   * switch to httpredir.debian.org as official GeoMirror.

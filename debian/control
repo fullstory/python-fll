@@ -4,6 +4,7 @@ Uploaders: Niall Walsh <niallwalsh@celtux.org>
 Section: python
 Priority: optional
 Build-Depends: debhelper (>= 9.20120115),
+ dh-python,
  python-all,
  python-apt,
  python-argparse,
