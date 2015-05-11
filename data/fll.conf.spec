@@ -13,7 +13,7 @@ archs		= list(default=list())
 #
 # Can be set via --mirror=<MIRROR> command line argument.
 #
-mirror		= string(min=1, default='http://http.debian.net/debian/')
+mirror		= string(min=1, default='http://httpredir.debian.org/debian/')
 
 # Build directory. A large amount of freespace is required. The mountpoint
 # where this directory exists must be mounted with permissive options as you

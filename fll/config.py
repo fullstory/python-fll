@@ -138,7 +138,7 @@ Default: sid""")
                    metavar='<URI>',
                    help="""\
 Distribution mirror.
-Default: http://http.debian.net/debian/""")
+Default: http://httpredir.debian.org/debian/""")
 
     d.add_argument('--components', '-c',
                    dest='apt_sources_debian_components',
@@ -262,7 +262,7 @@ Default: cdebootstrap""")
                    metavar='<URI>',
                    help="""\
 Bootstrap mirror.
-Default: http://http.debian.net/debian/""")
+Default: http://httpredir.debian.org/debian/""")
 
     c.add_argument('--chroot-include',
                    dest='chroot_bootstrap_include',

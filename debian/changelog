@@ -1,8 +1,8 @@
-python-fll (0.9.19) UNRELEASED; urgency=medium
+python-fll (0.9.19) unstable; urgency=medium
 
-  * NOT RELEASED YET
+  * switch to httpredir.debian.org as official GeoMirror.
 
- -- Stefan Lippers-Hollmann <s.l-h@gmx.de>  Sun, 04 Jan 2015 00:17:03 +0100
+ -- Stefan Lippers-Hollmann <s.l-h@gmx.de>  Mon, 11 May 2015 23:26:23 +0200
 
 python-fll (0.9.18) unstable; urgency=medium
 
