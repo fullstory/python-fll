@@ -1,8 +1,8 @@
-python-fll (0.9.21) UNRELEASED; urgency=medium
+python-fll (0.9.21) unstable; urgency=medium
 
-  * NOT RELEASED YET
+  * s/myspell/hunspell/.
 
- -- Stefan Lippers-Hollmann <s.l-h@gmx.de>  Mon, 11 May 2015 23:28:20 +0200
+ -- Stefan Lippers-Hollmann <s.l-h@gmx.de>  Thu, 19 Nov 2015 06:27:09 +0100
 
 python-fll (0.9.20) unstable; urgency=medium
 

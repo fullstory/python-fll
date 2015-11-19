@@ -22,7 +22,7 @@ kde-plasma-netbook = kde-l10n,
 
 koffice = koffice-l10n,
 
-myspell-en-us = myspell,
+hunspell-en-us = hunspell,
 
 libreoffice-core = libreoffice-help, libreoffice-l10n, mythes, hyphen,
 
