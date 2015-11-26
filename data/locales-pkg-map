@@ -26,4 +26,6 @@ hunspell-en-us = hunspell,
 
 libreoffice-core = libreoffice-help, libreoffice-l10n, mythes, hyphen,
 
+qpdfview = qpdfview-translations,
+
 sylpheed = sylpheed-i18n,

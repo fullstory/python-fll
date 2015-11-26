@@ -1,8 +1,8 @@
-python-fll (0.9.22) UNRELEASED; urgency=medium
+python-fll (0.9.22) unstable; urgency=medium
 
-  * NOT RELEASED YET
+  * handle i18n for qpdfview.
 
- -- Stefan Lippers-Hollmann <s.l-h@gmx.de>  Thu, 19 Nov 2015 06:27:36 +0100
+ -- Stefan Lippers-Hollmann <s.l-h@gmx.de>  Thu, 26 Nov 2015 06:40:08 +0100
 
 python-fll (0.9.21) unstable; urgency=medium
 
