@@ -2,6 +2,8 @@ aspell-en = aspell,
 
 aptosid-manual-en = aptosid-manual,
 
+firefox = firefox-l10n,
+
 gcompris = gcompris-sound,
 
 gimp = gimp-help,
@@ -11,8 +13,6 @@ iceape = iceape-locale,
 icedove = icedove-locale,
 
 iceowl = iceowl-l10n,
-
-iceweasel = iceweasel-l10n,
 
 k3b = k3b-i18n,
 

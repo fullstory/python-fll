@@ -1,8 +1,8 @@
-python-fll (0.9.23) UNRELEASED; urgency=medium
+python-fll (0.9.23) unstable; urgency=medium
 
-  * NOT RELEASED YET
+  * s/iceweasel/firefox/.
 
- -- Stefan Lippers-Hollmann <s.l-h@gmx.de>  Thu, 26 Nov 2015 06:40:29 +0100
+ -- Stefan Lippers-Hollmann <s.l-h@gmx.de>  Fri, 11 Mar 2016 21:06:38 +0100
 
 python-fll (0.9.22) unstable; urgency=medium
 
