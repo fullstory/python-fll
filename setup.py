@@ -192,7 +192,7 @@ setup(
     author_email='kel@otaku42.de',
     license='GPL-2',
     description='FULLSTORY live linux media python utility and modules',
-    url='http://developer.berlios.de/projects/fullstory/',
+    url='https://github.com/fullstory/',
     packages=['fll'],
     scripts=['bin/fll'],
     data_files=[
