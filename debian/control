@@ -9,7 +9,7 @@ Build-Depends: debhelper (>= 9.20120115),
  python-apt,
  python-argparse,
  python-configobj
-Standards-Version: 3.9.6
+Standards-Version: 3.9.8
 Vcs-git: git://github.com/fullstory/python-fll.git
 Vcs-Browser: https://github.com/fullstory/python-fll
 X-Python-Version: >=2.7

@@ -1,8 +1,10 @@
-python-fll (0.9.25) UNRELEASED; urgency=medium
+python-fll (0.9.25) unstable; urgency=medium
 
-  * NOT RELEASED YET
+  * s/kde-plasma-desktop/plasma-desktop/.
+  * s/kde-plasma-netbook/plasma-netbook/.
+  * bump standards version to 3.9.8, no changes necessary.
 
- -- Stefan Lippers-Hollmann <s.l-h@gmx.de>  Sat, 12 Mar 2016 02:49:17 +0100
+ -- Stefan Lippers-Hollmann <s.l-h@gmx.de>  Fri, 17 Jun 2016 06:32:49 +0200
 
 python-fll (0.9.24) unstable; urgency=medium
 
