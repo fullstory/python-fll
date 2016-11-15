@@ -1,8 +1,8 @@
-python-fll (0.9.26) UNRELEASED; urgency=medium
+python-fll (0.9.26) unstable; urgency=medium
 
-  * NOT RELEASED YET
+  * add support for qterminal.
 
- -- Stefan Lippers-Hollmann <s.l-h@gmx.de>  Fri, 17 Jun 2016 06:33:19 +0200
+ -- Stefan Lippers-Hollmann <s.l-h@gmx.de>  Tue, 15 Nov 2016 07:07:19 +0100
 
 python-fll (0.9.25) unstable; urgency=medium
 

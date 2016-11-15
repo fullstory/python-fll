@@ -28,4 +28,6 @@ plasma-netbook = kde-l10n,
 
 qpdfview = qpdfview-translations,
 
+qterminal = qterminal-l10n
+
 sylpheed = sylpheed-i18n,
