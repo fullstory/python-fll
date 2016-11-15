@@ -1,8 +1,8 @@
-python-fll (0.9.27) UNRELEASED; urgency=medium
+python-fll (0.9.27) unstable; urgency=medium
 
-  * NOT RELEASED YET
+  * qterminal: fix missing trailing comma.
 
- -- Stefan Lippers-Hollmann <s.l-h@gmx.de>  Tue, 15 Nov 2016 07:07:36 +0100
+ -- Stefan Lippers-Hollmann <s.l-h@gmx.de>  Tue, 15 Nov 2016 07:21:35 +0100
 
 python-fll (0.9.26) unstable; urgency=medium
 
