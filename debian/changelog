@@ -1,6 +1,7 @@
-python-fll (0.9.28) UNRELEASED; urgency=medium
+python-fll (0.9.28) ORPHANED; urgency=medium
 
   * NOT RELEASED YET
+  * ORPHAN PACKAGE
 
  -- Stefan Lippers-Hollmann <s.l-h@gmx.de>  Tue, 15 Nov 2016 07:21:58 +0100
 
